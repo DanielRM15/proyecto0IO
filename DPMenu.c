@@ -8,6 +8,10 @@ void on_not_implemented(GtkButton *button, gpointer user_data) {
     system("./Pending/pending.exe &");
 }
 
+void on_Floyd_clicked(GtkButton *button, gpointer user_data) {
+    system("./Floyd/floyd.exe &");
+}
+
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
@@ -16,6 +20,9 @@ int main(int argc, char *argv[]) {
     GtkWidget *window = GTK_WIDGET(gtk_builder_get_object(builder, "hWindow"));
 
     gtk_builder_connect_signals(builder, NULL);
+
+    // exit
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     g_object_unref(builder);
 
