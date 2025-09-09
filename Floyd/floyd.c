@@ -1,4 +1,18 @@
 #include <gtk/gtk.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+GtkWidget *num_nodes_spin;
+GtkWidget *main_stack;
+GtkWidget *distance_table_container;
+int nodes = 0;
+
+// Function to create the dynamic distance table
+void create_distance_table() {
+   
+}
 
 void on_quitBtn_clicked(GtkButton *button, gpointer user_data)
 {
@@ -7,7 +21,16 @@ void on_quitBtn_clicked(GtkButton *button, gpointer user_data)
 
 void on_continueBtn_clicked(GtkButton *button, gpointer user_data)
 {
-    g_print("Continue button clicked\n");
+    nodes = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(num_nodes_spin));
+    if (!nodes) {
+        return;
+    }
+    
+    // Create the dynamic table
+    create_distance_table();
+    
+    // Switch to the distance input page
+    gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page1");
 }
 
 void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
@@ -27,6 +50,10 @@ int main(int argc, char *argv[])
 
     // exit
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
+    main_stack = GTK_WIDGET(gtk_builder_get_object(builder, "mainStack"));
+    num_nodes_spin = GTK_WIDGET(gtk_builder_get_object(builder, "numNodesSpin"));
+    distance_table_container = GTK_WIDGET(gtk_builder_get_object(builder, "distanceTableContainer"));
 
     g_object_unref(builder);
 
