@@ -58,18 +58,58 @@ void setup_latex()
 {
     fprintf(output_file,
             "\\documentclass{beamer}\n"
-            "%% Theme settings\n"
+            "\\usepackage{tikz}\n"
+            "\\usetikzlibrary{arrows.meta}\n"
             "\\usetheme{default}\n"
-            "%% Define header template\n"
             "\\setbeamertemplate{headline}{%%\n"
             "    \\begin{beamercolorbox}[wd=\\paperwidth,ht=3ex,dp=1ex,center]{section in head/foot}%%\n"
             "        \\usebeamercolor[fg]{section in head/foot}%%\n"
             "        My Centered Header\n"
             "    \\end{beamercolorbox}%%\n"
             "}\n\n"
-            "%% Customize header color\n"
             "\\setbeamercolor{section in head/foot}{bg=blue!50, fg=white}\n"
             "\\begin{document}\n\n");
+}
+
+void print_graph_latex()
+{
+    fprintf(output_file, "\\begin{frame}{%s}\n", "Graph");
+    fprintf(output_file, "    \\begin{center}\n");
+    fprintf(output_file, "\\begin{tikzpicture}[->, >=Stealth, thick, main/.style={circle, draw, minimum size=1cm}]\n\n");
+
+    // Place nodes on a circle
+    for (int i = 0; i < nodes; i++)
+    {
+        char node_name = 'A' + i;
+        double angle = 360.0 / nodes * i;
+        fprintf(output_file, "    \\node[main] (%c) at (%.2f:3cm) {%c};\n",
+                node_name, angle, node_name);
+    }
+
+    fprintf(output_file, "\n    %% Edges\n    \\path\n");
+
+    // Draw edges where D[i][j] <= 9999
+    for (int i = 0; i < nodes; i++)
+    {
+        for (int j = 0; j < nodes; j++)
+        {
+            if (i != j && D[i][j] <= 9999)
+            {
+                // Choose label position dynamically based on node positions
+                const char *pos = "above"; // default
+                if ((j - i + nodes) % nodes > nodes / 2)
+                    pos = "below";
+
+                fprintf(output_file,
+                        "        (%c) edge[bend left=15] node[%s, fill=none] {%d} (%c)\n",
+                        'A' + i, pos, D[i][j], 'A' + j);
+            }
+        }
+    }
+
+    fprintf(output_file, ";\n\\end{tikzpicture}\n");
+    fprintf(output_file, "\\end{center}\n");
+    fprintf(output_file, "\\end{frame}\n\n");
 }
 
 void print_table_latex(const char *slide_title, int **table)
@@ -106,10 +146,9 @@ void print_table_latex(const char *slide_title, int **table)
     fprintf(output_file, "        \\end{tabular}\n");
     fprintf(output_file, "    \\end{center}\n");
     fprintf(output_file, "\\end{frame}\n\n");
-    fprintf(output_file, " ");
 }
 
-void floyd_tex()
+void floyd()
 {
     for (int k = 0; k < nodes; k++)
     {
@@ -170,7 +209,6 @@ void build_D0()
             P[i - 1][j - 1] = 0;
         }
     }
-    print_table_latex("Table D(0)", D);
 }
 
 void on_runBtn_clicked(GtkButton *button, gpointer user_data)
@@ -192,7 +230,9 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
         P[i] = (int *)malloc(nodes * sizeof(int));
 
     build_D0();
-    floyd_tex();
+    print_graph_latex();
+    print_table_latex("Table D(0)", D);
+    floyd();
 
     for (int i = 0; i < nodes; i++)
     {

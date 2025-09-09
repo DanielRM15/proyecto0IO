@@ -1,7 +1,7 @@
 \documentclass{beamer}
-% Theme settings
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 \usetheme{default}
-% Define header template
 \setbeamertemplate{headline}{%
     \begin{beamercolorbox}[wd=\paperwidth,ht=3ex,dp=1ex,center]{section in head/foot}%
         \usebeamercolor[fg]{section in head/foot}%
@@ -9,9 +9,38 @@
     \end{beamercolorbox}%
 }
 
-% Customize header color
 \setbeamercolor{section in head/foot}{bg=blue!50, fg=white}
 \begin{document}
+
+\begin{frame}{Graph}
+    \begin{center}
+\begin{tikzpicture}[->, >=Stealth, thick, main/.style={circle, draw, minimum size=1cm}]
+
+    \node[main] (A) at (0.00:3cm) {A};
+    \node[main] (B) at (72.00:3cm) {B};
+    \node[main] (C) at (144.00:3cm) {C};
+    \node[main] (D) at (216.00:3cm) {D};
+    \node[main] (E) at (288.00:3cm) {E};
+
+    % Edges
+    \path
+        (A) edge[bend left=15] node[above, fill=none] {6} (B)
+        (A) edge[bend left=15] node[below, fill=none] {4} (D)
+        (A) edge[bend left=15] node[below, fill=none] {7} (E)
+        (B) edge[bend left=15] node[below, fill=none] {9} (A)
+        (B) edge[bend left=15] node[above, fill=none] {7} (C)
+        (C) edge[bend left=15] node[below, fill=none] {5} (B)
+        (C) edge[bend left=15] node[above, fill=none] {14} (E)
+        (D) edge[bend left=15] node[above, fill=none] {8} (A)
+        (D) edge[bend left=15] node[below, fill=none] {1} (B)
+        (D) edge[bend left=15] node[above, fill=none] {15} (E)
+        (E) edge[bend left=15] node[above, fill=none] {2} (A)
+        (E) edge[bend left=15] node[below, fill=none] {2} (C)
+        (E) edge[bend left=15] node[below, fill=none] {19} (D)
+;
+\end{tikzpicture}
+\end{center}
+\end{frame}
 
 \begin{frame}{Table D(0)}
     \begin{center}
@@ -27,7 +56,7 @@ v5 & 2 & $\infty$ & 2 & 19 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Table D(1)}
+\begin{frame}{Table D(1)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -41,7 +70,7 @@ v5 & 2 & 8 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Tabla P (Hasta el momento)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -55,7 +84,7 @@ v5 & 0 & 1 & 0 & 1 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Table D(2)}
+\begin{frame}{Table D(2)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -69,7 +98,7 @@ v5 & 2 & 8 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Tabla P (Hasta el momento)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -83,7 +112,7 @@ v5 & 0 & 1 & 0 & 1 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Table D(3)}
+\begin{frame}{Table D(3)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -97,7 +126,7 @@ v5 & 2 & 7 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Tabla P (Hasta el momento)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -111,7 +140,7 @@ v5 & 0 & 3 & 0 & 1 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Table D(4)}
+\begin{frame}{Table D(4)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -125,7 +154,7 @@ v5 & 2 & 7 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Tabla P (Hasta el momento)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -139,7 +168,7 @@ v5 & 0 & 3 & 0 & 1 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Table D(5)}
+\begin{frame}{Table D(5)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -153,7 +182,7 @@ v5 & 2 & 7 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
- \begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Tabla P (Hasta el momento)}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -167,4 +196,4 @@ v5 & 0 & 3 & 0 & 1 & 0 \\
     \end{center}
 \end{frame}
 
- \end{document}
+\end{document}
