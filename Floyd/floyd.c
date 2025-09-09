@@ -13,6 +13,7 @@ int nodes = 0;
 FILE *output_file;
 int **D;
 int **P;
+int **changes;
 
 // Function to create the dynamic distance table
 void create_distance_table()
@@ -58,14 +59,14 @@ void setup_latex()
 {
     fprintf(output_file,
             "\\documentclass{beamer}\n"
-            "\\usepackage{tikz}\n"
+            "\\usepackage{tikz, xcolor}\n"
             "\\usetikzlibrary{arrows.meta}\n"
             "\\usetheme{default}\n"
             "\\setbeamertemplate{headline}{%%\n"
-            "    \\begin{beamercolorbox}[wd=\\paperwidth,ht=3ex,dp=1ex,center]{section in head/foot}%%\n"
-            "        \\usebeamercolor[fg]{section in head/foot}%%\n"
-            "        My Centered Header\n"
-            "    \\end{beamercolorbox}%%\n"
+            "\\begin{beamercolorbox}[wd=\\paperwidth,ht=3ex,dp=1ex,center]{section in head/foot}%%\n"
+            "\\usebeamercolor[fg]{section in head/foot}%%\n"
+            "Operations Research\n"
+            "\\end{beamercolorbox}%%\n"
             "}\n\n"
             "\\setbeamercolor{section in head/foot}{bg=blue!50, fg=white}\n"
             "\\begin{document}\n\n");
@@ -133,8 +134,10 @@ void print_table_latex(const char *slide_title, int **table)
         fprintf(output_file, "v%d & ", i + 1);
         for (int j = 0; j < nodes; j++)
         {
-            if (table[i][j] < 99999)
+            if (table[i][j] < 99999 && changes[i][j] == 0) // No change
                 fprintf(output_file, "%d", table[i][j]);
+            else if (table[i][j] < 99999) // Change: blue highlight
+                fprintf(output_file, "\\textcolor{blue}{%d}", table[i][j]);
             else
                 fprintf(output_file, "$\\infty$");
             if (j < nodes - 1)
@@ -156,12 +159,14 @@ void floyd()
         {
             for (int j = 0; j < nodes; j++)
             {
+                changes[i][j] = 0;
                 if (i == j)
                     continue;
                 if (D[i][j] > D[i][k] + D[k][j])
                 {
                     D[i][j] = D[i][k] + D[k][j];
                     P[i][j] = k + 1;
+                    changes[i][j] = 1;
                 }
             }
         }
@@ -207,6 +212,7 @@ void build_D0()
             }
             D[i - 1][j - 1] = ivalue;
             P[i - 1][j - 1] = 0;
+            changes[i - 1][j - 1] = 0;
         }
     }
 }
@@ -228,6 +234,10 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     P = (int **)malloc(nodes * sizeof(int *));
     for (int i = 0; i < nodes; i++)
         P[i] = (int *)malloc(nodes * sizeof(int));
+
+    changes = (int **)malloc(nodes * sizeof(int *));
+    for (int i = 0; i < nodes; i++)
+        changes[i] = (int *)malloc(nodes * sizeof(int));
 
     build_D0();
     print_graph_latex();
