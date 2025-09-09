@@ -130,7 +130,7 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Enter the distances between the nodes (-1 for infinite (esto hay que cambiarlo)):</property>
+                <property name="label" translatable="yes">Enter the distances between the nodes (-1 for infinite):</property>
                 <attributes>
                   <attribute name="font-desc" value="Monospace Bold 14"/>
                 </attributes>
@@ -152,10 +152,34 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkBox" id="distanceTableContainer">
+                      <!-- n-columns=3 n-rows=3 -->
+                      <object class="GtkGrid" id="distance_input_grid">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="orientation">vertical</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>
