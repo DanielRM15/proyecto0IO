@@ -75,7 +75,7 @@ void setup_latex()
 void print_graph_latex()
 {
     fprintf(output_file, "\\begin{frame}{%s}\n", "Graph");
-    fprintf(output_file, "    \\begin{center}\n");
+    fprintf(output_file, "\\begin{center}\n");
     fprintf(output_file, "\\begin{tikzpicture}[->, >=Stealth, thick, main/.style={circle, draw, minimum size=1cm}]\n\n");
 
     // Place nodes on a circle
@@ -87,7 +87,7 @@ void print_graph_latex()
                 node_name, angle, node_name);
     }
 
-    fprintf(output_file, "\n    %% Edges\n    \\path\n");
+    fprintf(output_file, "\\path\n");
 
     // Draw edges where D[i][j] <= 9999
     for (int i = 0; i < nodes; i++)
@@ -170,10 +170,40 @@ void floyd()
                 }
             }
         }
-        char slide_title[64];
+        char slide_title[32];
         sprintf(slide_title, "Table D(%d)", k + 1);
         print_table_latex(slide_title, D);
-        print_table_latex("Tabla P (Hasta el momento)", P);
+        print_table_latex("Table P", P);
+    }
+}
+
+void print_shortest_paths()
+{
+    for (int i = 0; i < nodes; i++)
+    {
+        char slide_title[32];
+        sprintf(slide_title, "Shortest Paths from v%d", i + 1);
+        fprintf(output_file, "\\begin{frame}{%s}\n", slide_title);
+        fprintf(output_file, "\\begin{itemize}\n    ");
+
+        for (int j = 0; j < nodes; j++)
+        {
+            if (i == j)
+                continue;
+
+            fprintf(output_file, "\\item to v%d (%d): v%d $\\rightarrow$ ", j + 1, D[i][j], i + 1);
+
+            int z = i;
+            int w = j;
+            while (P[z][w] != 0)
+            {
+                fprintf(output_file, "v%d $\\rightarrow$ ", P[z][w]);
+                z = P[z][w] - 1;
+            }
+            fprintf(output_file, "v%d\n", j + 1);
+        }
+        fprintf(output_file, "\\end{itemize}\n");
+        fprintf(output_file, "\\end{frame}\n\n");
     }
 }
 
@@ -243,6 +273,7 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     print_graph_latex();
     print_table_latex("Table D(0)", D);
     floyd();
+    print_shortest_paths();
 
     for (int i = 0; i < nodes; i++)
     {

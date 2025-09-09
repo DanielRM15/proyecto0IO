@@ -21,9 +21,7 @@ Operations Research
     \node[main] (C) at (144.00:3cm) {C};
     \node[main] (D) at (216.00:3cm) {D};
     \node[main] (E) at (288.00:3cm) {E};
-
-    % Edges
-    \path
+\path
         (A) edge[bend left=15] node[above, fill=none] {6} (B)
         (A) edge[bend left=15] node[below, fill=none] {4} (D)
         (A) edge[bend left=15] node[below, fill=none] {7} (E)
@@ -70,7 +68,7 @@ v5 & 2 & \textcolor{blue}{8} & 2 & \textcolor{blue}{6} & 0 \\
     \end{center}
 \end{frame}
 
-\begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Table P}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -98,7 +96,7 @@ v5 & 2 & 8 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
-\begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Table P}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -126,7 +124,7 @@ v5 & 2 & \textcolor{blue}{7} & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
-\begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Table P}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -154,7 +152,7 @@ v5 & 2 & 7 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
-\begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Table P}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -182,7 +180,7 @@ v5 & 2 & 7 & 2 & 6 & 0 \\
     \end{center}
 \end{frame}
 
-\begin{frame}{Tabla P (Hasta el momento)}
+\begin{frame}{Table P}
     \begin{center}
         \begin{tabular}{c|ccccc}
          & v1 & v2 & v3 & v4 & v5 \\
@@ -194,6 +192,51 @@ v4 & 0 & 0 & 2 & 0 & 0 \\
 v5 & 0 & 3 & 0 & 1 & 0 \\
         \end{tabular}
     \end{center}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v1}
+\begin{itemize}
+    \item to v2 (5): v1 $\rightarrow$ v4 $\rightarrow$ v2
+\item to v3 (9): v1 $\rightarrow$ v5 $\rightarrow$ v3
+\item to v4 (4): v1 $\rightarrow$ v4
+\item to v5 (7): v1 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v2}
+\begin{itemize}
+    \item to v1 (9): v2 $\rightarrow$ v1
+\item to v3 (7): v2 $\rightarrow$ v3
+\item to v4 (13): v2 $\rightarrow$ v1 $\rightarrow$ v4
+\item to v5 (16): v2 $\rightarrow$ v1 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v3}
+\begin{itemize}
+    \item to v1 (14): v3 $\rightarrow$ v2 $\rightarrow$ v1
+\item to v2 (5): v3 $\rightarrow$ v2
+\item to v4 (18): v3 $\rightarrow$ v2 $\rightarrow$ v1 $\rightarrow$ v4
+\item to v5 (14): v3 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v4}
+\begin{itemize}
+    \item to v1 (8): v4 $\rightarrow$ v1
+\item to v2 (1): v4 $\rightarrow$ v2
+\item to v3 (8): v4 $\rightarrow$ v2 $\rightarrow$ v3
+\item to v5 (15): v4 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v5}
+\begin{itemize}
+    \item to v1 (2): v5 $\rightarrow$ v1
+\item to v2 (7): v5 $\rightarrow$ v3 $\rightarrow$ v2
+\item to v3 (2): v5 $\rightarrow$ v3
+\item to v4 (6): v5 $\rightarrow$ v1 $\rightarrow$ v4
+\end{itemize}
 \end{frame}
 
 \end{document}
