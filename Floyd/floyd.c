@@ -15,6 +15,50 @@ int **D;
 int **P;
 int **changes;
 
+// Validate numeric input
+void on_insert_text(GtkEditable *editable, const gchar *text, gint length, gint *position, gpointer user_data)
+{
+    const gchar *current_text = gtk_entry_get_text(GTK_ENTRY(editable));
+    
+    // Check if all characters in the text are digits or minus sign
+    for (int i = 0; i < length; i++)
+    {
+        if (!g_ascii_isdigit(text[i]) && text[i] != '-')
+        {
+            g_signal_stop_emission_by_name(editable, "insert-text");
+            return;
+        }
+    }
+    
+    // Only allow minus at the beginning
+    if (strchr(text, '-') && (*position > 0 || strlen(current_text) > 0))
+    {
+        g_signal_stop_emission_by_name(editable, "insert-text");
+        return;
+    }
+    
+    if (strchr(text, '-') || strchr(current_text, '-'))
+    {
+
+        for (int i = 0; i < length; i++)
+        {
+            if (g_ascii_isdigit(text[i]) && text[i] != '1')
+            {
+                g_signal_stop_emission_by_name(editable, "insert-text");
+                return;
+            }
+        }
+        
+        // If current text already has -1
+        if (strlen(current_text) >= 2 || (strlen(current_text) == 1 && current_text[0] == '-' && strchr(text, '1') && length > 1))
+        {
+            g_signal_stop_emission_by_name(editable, "insert-text");
+            return;
+        }
+    }
+        return;
+}
+
 // Function to create the dynamic distance table
 void create_distance_table()
 {
@@ -40,8 +84,14 @@ void create_distance_table()
                 gtk_grid_attach(GTK_GRID(distance_input_grid), to_attach, j, i, 1, 1);
                 continue;
             }
-            GtkAdjustment *adj = gtk_adjustment_new(i == j ? 0 : -1, -1, 1000, 1, 10, 0);
-            to_attach = gtk_spin_button_new(adj, 1, 0);
+            to_attach = gtk_entry_new();
+            gtk_entry_set_width_chars(GTK_ENTRY(to_attach), 6);
+            gtk_entry_set_max_length(GTK_ENTRY(to_attach), 5);
+            gtk_entry_set_input_purpose(GTK_ENTRY(to_attach), GTK_INPUT_PURPOSE_DIGITS);
+            
+            // Connect the insert-text signal to validate input
+            g_signal_connect(to_attach, "insert-text", G_CALLBACK(on_insert_text), NULL);
+            
             if (i == j)
             {
                 gtk_entry_set_text(GTK_ENTRY(to_attach), "0");
@@ -55,21 +105,29 @@ void create_distance_table()
     gtk_widget_show_all(distance_input_grid);
 }
 
+void print_cover_slide()
+{
+    fprintf(output_file, "\\begin{frame}[plain]\n\\titlepage\\end{frame}\n\n");
+}
+
 void setup_latex()
 {
     fprintf(output_file,
-            "\\documentclass{beamer}\n"
-            "\\usepackage{tikz, xcolor}\n"
-            "\\usetikzlibrary{arrows.meta}\n"
-            "\\usetheme{default}\n"
-            "\\setbeamertemplate{headline}{%%\n"
-            "\\begin{beamercolorbox}[wd=\\paperwidth,ht=3ex,dp=1ex,center]{section in head/foot}%%\n"
-            "\\usebeamercolor[fg]{section in head/foot}%%\n"
-            "Operations Research\n"
-            "\\end{beamercolorbox}%%\n"
-            "}\n\n"
-            "\\setbeamercolor{section in head/foot}{bg=blue!50, fg=white}\n"
-            "\\begin{document}\n\n");
+        "\\PassOptionsToPackage{table}{xcolor}\n"
+        "\\documentclass[xcolor=table]{beamer}\n"
+        "\\usetheme{Madrid}\n"
+        "\\usepackage{tikz, xcolor}\n"
+        "\\usetikzlibrary{arrows.meta}\n"
+        "\\usepackage{hyperref}\n"
+        "\\usepackage{graphicx}\n"
+        "\\title{Floyd's Algorithm: Shortest Path Problem}\n"
+        "\\subtitle{Project 1}\n"
+        "\\author{Daniel Romero - 2023059668 \\break Adrián Zamora - 2023083307}\n"
+        "\\institute[TEC]{\\break Escuela de Ingeniería en Computación \\break Instituto Tecnológico de Costa Rica \\break II Semestre 2025}\n"
+        "\\date{September 12, 2025}\n"
+        "\\begin{document}\n\n"
+    );
+    print_cover_slide();
 }
 
 void print_graph_latex()
@@ -136,7 +194,7 @@ void print_table_latex(const char *slide_title, int **table)
         {
             if (table[i][j] < 99999 && changes[i][j] == 0) // No change
                 fprintf(output_file, "%d", table[i][j]);
-            else if (table[i][j] < 99999) // Change: blue highlight
+            else if (table[i][j] < 99999) // Blue highlight
                 fprintf(output_file, "\\textcolor{blue}{%d}", table[i][j]);
             else
                 fprintf(output_file, "$\\infty$");
@@ -234,8 +292,8 @@ void build_D0()
         for (int j = 1; j <= nodes; j++)
         {
             GtkWidget *child = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), j, i);
-            gdouble value = gtk_spin_button_get_value(GTK_SPIN_BUTTON(child));
-            int ivalue = (int)value;
+            const char *text = gtk_entry_get_text(GTK_ENTRY(child));
+            int ivalue = atoi(text);
             if (ivalue < 0)
             {
                 ivalue = 99999;
@@ -285,6 +343,9 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     free(D);
     free(P);
     fclose(output_file);
+
+    system("pdflatex output.tex");
+    system("evince --presentation output.pdf");
 }
 
 void on_loadBtn_clicked(GtkButton *button, gpointer user_data)

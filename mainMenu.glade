@@ -35,7 +35,7 @@
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
-            <property name="tooltip-text" translatable="yes">Dynamic Programming algorithm 1</property>
+            <property name="tooltip-text" translatable="yes">Floyd's algorithm to find the shortest path in a directed weighted graph with edge weights</property>
             <property name="margin-start">20</property>
             <property name="margin-end">20</property>
             <signal name="clicked" handler="on_Floyd_clicked" swapped="no"/>
