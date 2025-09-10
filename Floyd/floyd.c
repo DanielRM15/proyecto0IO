@@ -14,6 +14,7 @@ FILE *output_file;
 int **D;
 int **P;
 int **changes;
+char **node_names;
 
 // Validate numeric input
 void on_insert_text(GtkEditable *editable, const gchar *text, gint length, gint *position, gpointer user_data)
@@ -72,15 +73,21 @@ void create_distance_table()
                 continue;
             if (i == 0 && j != 0)
             {
+                to_attach = gtk_entry_new();
+                gtk_entry_set_width_chars(GTK_ENTRY(to_attach), 6);
+                gtk_entry_set_max_length(GTK_ENTRY(to_attach), 10);
                 snprintf(buf, sizeof(buf), "v%d", j);
-                to_attach = gtk_label_new(buf);
+                gtk_entry_set_text(GTK_ENTRY(to_attach), buf);
                 gtk_grid_attach(GTK_GRID(distance_input_grid), to_attach, j, i, 1, 1);
                 continue;
             }
             if (j == 0 && i != 0)
             {
+                to_attach = gtk_entry_new();
+                gtk_entry_set_width_chars(GTK_ENTRY(to_attach), 6);
+                gtk_entry_set_max_length(GTK_ENTRY(to_attach), 10);
                 snprintf(buf, sizeof(buf), "v%d", i);
-                to_attach = gtk_label_new(buf);
+                gtk_entry_set_text(GTK_ENTRY(to_attach), buf);
                 gtk_grid_attach(GTK_GRID(distance_input_grid), to_attach, j, i, 1, 1);
                 continue;
             }
@@ -139,10 +146,9 @@ void print_graph_latex()
     // Place nodes on a circle
     for (int i = 0; i < nodes; i++)
     {
-        char node_name = 'A' + i;
         double angle = 360.0 / nodes * i;
-        fprintf(output_file, "    \\node[main] (%c) at (%.2f:3cm) {%c};\n",
-                node_name, angle, node_name);
+        fprintf(output_file, "    \\node[main] (%s) at (%.2f:3cm) {%s};\n",
+                node_names[i], angle, node_names[i]);
     }
 
     fprintf(output_file, "\\path\n");
@@ -160,8 +166,8 @@ void print_graph_latex()
                     pos = "below";
 
                 fprintf(output_file,
-                        "        (%c) edge[bend left=15] node[%s, fill=none] {%d} (%c)\n",
-                        'A' + i, pos, D[i][j], 'A' + j);
+                        "        (%s) edge[bend left=15] node[%s, fill=none] {%d} (%s)\n",
+                        node_names[i], pos, D[i][j], node_names[j]);
             }
         }
     }
@@ -182,14 +188,14 @@ void print_table_latex(const char *slide_title, int **table)
     fprintf(output_file, "         & ");
     for (int j = 0; j < nodes; j++)
     {
-        fprintf(output_file, "v%d", j + 1);
+        fprintf(output_file, "%s", node_names[j]);
         if (j < nodes - 1)
             fprintf(output_file, " & ");
     }
     fprintf(output_file, " \\\\\n\\hline\n");
     for (int i = 0; i < nodes; i++)
     {
-        fprintf(output_file, "v%d & ", i + 1);
+        fprintf(output_file, "%s & ", node_names[i]);
         for (int j = 0; j < nodes; j++)
         {
             if (table[i][j] < 99999 && changes[i][j] == 0) // No change
@@ -228,8 +234,8 @@ void floyd()
                 }
             }
         }
-        char slide_title[32];
-        sprintf(slide_title, "Table D(%d)", k + 1);
+        char slide_title[64];
+        sprintf(slide_title, "Table D(%s)", node_names[k]);
         print_table_latex(slide_title, D);
         print_table_latex("Table P", P);
     }
@@ -239,8 +245,8 @@ void print_shortest_paths()
 {
     for (int i = 0; i < nodes; i++)
     {
-        char slide_title[32];
-        sprintf(slide_title, "Shortest Paths from v%d", i + 1);
+        char slide_title[64];
+        sprintf(slide_title, "Shortest Paths from %s", node_names[i]);
         fprintf(output_file, "\\begin{frame}{%s}\n", slide_title);
         fprintf(output_file, "\\begin{itemize}\n    ");
 
@@ -249,16 +255,16 @@ void print_shortest_paths()
             if (i == j)
                 continue;
 
-            fprintf(output_file, "\\item to v%d (%d): v%d $\\rightarrow$ ", j + 1, D[i][j], i + 1);
+            fprintf(output_file, "\\item to %s (%d): %s $\\rightarrow$ ", node_names[j], D[i][j], node_names[i]);
 
             int z = i;
             int w = j;
             while (P[z][w] != 0)
             {
-                fprintf(output_file, "v%d $\\rightarrow$ ", P[z][w]);
+                fprintf(output_file, "%s $\\rightarrow$ ", node_names[P[z][w] - 1]);
                 z = P[z][w] - 1;
             }
-            fprintf(output_file, "v%d\n", j + 1);
+            fprintf(output_file, "%s\n", node_names[j]);
         }
         fprintf(output_file, "\\end{itemize}\n");
         fprintf(output_file, "\\end{frame}\n\n");
@@ -287,6 +293,19 @@ void on_continueBtn_clicked(GtkButton *button, gpointer user_data)
 
 void build_D0()
 {
+    // Allocate memory for node names
+    node_names = (char **)malloc(nodes * sizeof(char *));
+    for (int i = 0; i < nodes; i++)
+        node_names[i] = (char *)malloc(11 * sizeof(char)); // 10 chars + null terminator (max 10 chars)
+    
+    // Extract node names from the first row
+    for (int j = 1; j <= nodes; j++)
+    {
+        GtkWidget *child = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), j, 0);
+        const char *text = gtk_entry_get_text(GTK_ENTRY(child));
+        strcpy(node_names[j - 1], text);
+    }
+    
     for (int i = 1; i <= nodes; i++)
     {
         for (int j = 1; j <= nodes; j++)
@@ -337,11 +356,15 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     {
         free(D[i]);
         free(P[i]);
+        free(changes[i]);
+        free(node_names[i]);
     }
 
     fprintf(output_file, "\\end{document}");
     free(D);
     free(P);
+    free(changes);
+    free(node_names);
     fclose(output_file);
 
     system("pdflatex output.tex");
