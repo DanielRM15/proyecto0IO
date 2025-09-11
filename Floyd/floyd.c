@@ -8,6 +8,7 @@ GtkWidget *num_nodes_spin;
 GtkWidget *main_stack;
 GtkWidget *distance_table_container;
 GtkWidget *distance_input_grid;
+GtkWidget *main_window;
 int nodes = 0;
 
 FILE *output_file;
@@ -15,6 +16,7 @@ int **D;
 int **P;
 int **changes;
 char **node_names;
+
 
 // Validate numeric input
 void on_insert_text(GtkEditable *editable, const gchar *text, gint length, gint *position, gpointer user_data)
@@ -60,6 +62,31 @@ void on_insert_text(GtkEditable *editable, const gchar *text, gint length, gint 
         return;
 }
 
+static void on_entry_changed(GtkEditable *editable, gpointer user_data) {
+    const gchar *text = gtk_entry_get_text(GTK_ENTRY(editable));
+
+    if (g_strcmp0(text, "-1") == 0) {
+        // block validator + self
+        g_signal_handlers_block_by_func(editable, on_insert_text, NULL);
+        g_signal_handlers_block_by_func(editable, on_entry_changed, user_data);
+
+        gtk_entry_set_text(GTK_ENTRY(editable), "∞");
+
+        // unblock
+        g_signal_handlers_unblock_by_func(editable, on_insert_text, NULL);
+        g_signal_handlers_unblock_by_func(editable, on_entry_changed, user_data);
+    }
+}
+
+static void on_name_changed(GtkEditable *editable, gpointer user_data) {
+    GtkEntry *partner = GTK_ENTRY(user_data);
+    const gchar *text = gtk_entry_get_text(GTK_ENTRY(editable));
+
+    g_signal_handlers_block_by_func(partner, on_name_changed, editable);
+    gtk_entry_set_text(partner, text);
+    g_signal_handlers_unblock_by_func(partner, on_name_changed, editable);
+}
+
 // Function to create the dynamic distance table
 void create_distance_table()
 {
@@ -75,9 +102,11 @@ void create_distance_table()
             {
                 to_attach = gtk_entry_new();
                 gtk_entry_set_width_chars(GTK_ENTRY(to_attach), 6);
-                gtk_entry_set_max_length(GTK_ENTRY(to_attach), 10);
-                snprintf(buf, sizeof(buf), "v%d", j);
+                gtk_entry_set_max_length(GTK_ENTRY(to_attach), 5);
+                snprintf(buf, sizeof(buf), "%c", 'A' + (j - 1));
                 gtk_entry_set_text(GTK_ENTRY(to_attach), buf);
+
+                g_object_set_data(G_OBJECT(to_attach), "node-index", GINT_TO_POINTER(j));
                 gtk_grid_attach(GTK_GRID(distance_input_grid), to_attach, j, i, 1, 1);
                 continue;
             }
@@ -85,9 +114,15 @@ void create_distance_table()
             {
                 to_attach = gtk_entry_new();
                 gtk_entry_set_width_chars(GTK_ENTRY(to_attach), 6);
-                gtk_entry_set_max_length(GTK_ENTRY(to_attach), 10);
-                snprintf(buf, sizeof(buf), "v%d", i);
+                gtk_entry_set_max_length(GTK_ENTRY(to_attach), 5);
+                snprintf(buf, sizeof(buf), "%c", 'A' + (i - 1));
                 gtk_entry_set_text(GTK_ENTRY(to_attach), buf);
+
+                GtkWidget *col_entry = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), i, 0);
+
+                g_signal_connect(to_attach, "changed", G_CALLBACK(on_name_changed), col_entry);
+                g_signal_connect(col_entry, "changed", G_CALLBACK(on_name_changed), to_attach);
+
                 gtk_grid_attach(GTK_GRID(distance_input_grid), to_attach, j, i, 1, 1);
                 continue;
             }
@@ -98,6 +133,8 @@ void create_distance_table()
             
             // Connect the insert-text signal to validate input
             g_signal_connect(to_attach, "insert-text", G_CALLBACK(on_insert_text), NULL);
+
+            g_signal_connect(to_attach, "changed", G_CALLBACK(on_entry_changed), NULL);
             
             if (i == j)
             {
@@ -312,10 +349,12 @@ void build_D0()
         {
             GtkWidget *child = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), j, i);
             const char *text = gtk_entry_get_text(GTK_ENTRY(child));
-            int ivalue = atoi(text);
-            if (ivalue < 0)
-            {
+            int ivalue;
+            if (g_strcmp0(text, "∞") == 0) {
                 ivalue = 99999;
+            } else {
+                ivalue = atoi(text);
+                if (ivalue < 0) ivalue = 99999;
             }
             D[i - 1][j - 1] = ivalue;
             P[i - 1][j - 1] = 0;
@@ -324,8 +363,64 @@ void build_D0()
     }
 }
 
-void on_runBtn_clicked(GtkButton *button, gpointer user_data)
+int validate_node_names()
 {
+    // Check for empty names and collect all names
+    char temp_names[nodes][11];
+    
+    for (int j = 1; j <= nodes; j++)
+    {
+        GtkWidget *child = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), j, 0);
+        const char *text = gtk_entry_get_text(GTK_ENTRY(child));
+        
+        // Check if name is empty or contains only whitespace
+        if (text == NULL || strlen(text) == 0 || strspn(text, " \t\n\r") == strlen(text))
+        {
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                GTK_DIALOG_MODAL,
+                GTK_MESSAGE_ERROR,
+                GTK_BUTTONS_OK,
+                "Node name cannot be empty. Please provide a name for all nodes.");
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+            return 0; // Validation failed
+        }
+        
+        // Store the name for duplicate checking
+        strncpy(temp_names[j-1], text, 10);
+        temp_names[j-1][10] = '\0'; // Ensure null termination
+    }
+    
+    // Check for duplicates
+    for (int i = 0; i < nodes; i++)
+    {
+        for (int j = i + 1; j < nodes; j++)
+        {
+            if (strcmp(temp_names[i], temp_names[j]) == 0)
+            {
+                GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                    GTK_DIALOG_MODAL,
+                    GTK_MESSAGE_ERROR,
+                    GTK_BUTTONS_OK,
+                    "Duplicate node name '%s' found. Each node must have a unique name.",
+                    temp_names[i]);
+                gtk_dialog_run(GTK_DIALOG(dialog));
+                gtk_widget_destroy(dialog);
+                return 0; // Validation failed
+            }
+        }
+    }
+    
+    return 1; // Validation passed
+}
+
+void on_runBtn_clicked(GtkButton *button, gpointer user_data)
+{   
+    if (!validate_node_names())
+    {
+        return; // Stop execution if validation fails
+    }
+
     output_file = fopen("output.tex", "w");
     setup_latex();
     if (output_file == NULL)
@@ -373,7 +468,258 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 
 void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
 {
-    g_print("Load button clicked\n");
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new("Open Floyd File",
+                                       NULL,
+                                       action,
+                                       "_Cancel", GTK_RESPONSE_CANCEL,
+                                       "_Open", GTK_RESPONSE_ACCEPT,
+                                       NULL);
+
+    // Only .floyd files
+    GtkFileFilter *filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "Floyd files (*.floyd)");
+    gtk_file_filter_add_pattern(filter, "*.floyd");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        filename = gtk_file_chooser_get_filename(chooser);
+
+        FILE *file = fopen(filename, "r");
+        if (file == NULL)
+        {
+            GtkWidget *error_dialog = gtk_message_dialog_new(NULL,
+                GTK_DIALOG_MODAL,
+                GTK_MESSAGE_ERROR,
+                GTK_BUTTONS_OK,
+                "Error opening file: %s", filename);
+            gtk_dialog_run(GTK_DIALOG(error_dialog));
+            gtk_widget_destroy(error_dialog);
+            g_free(filename);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Read number of nodes
+        int loaded_nodes;
+        if (fscanf(file, "%d", &loaded_nodes) != 1)
+        {
+            GtkWidget *error_dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                GTK_DIALOG_MODAL,
+                GTK_MESSAGE_ERROR,
+                GTK_BUTTONS_OK,
+                "Invalid file format");
+            gtk_dialog_run(GTK_DIALOG(error_dialog));
+            gtk_widget_destroy(error_dialog);
+            fclose(file);
+            g_free(filename);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Set the spin button value
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(num_nodes_spin), loaded_nodes);
+        nodes = loaded_nodes;
+
+        // Create the table
+        create_distance_table();
+
+        // Read node names and distances
+        for (int i = 0; i < nodes; i++)
+        {
+            char node_name[6];
+            if (fscanf(file, "%5s", node_name) != 1)
+            {
+                GtkWidget *error_dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                    GTK_DIALOG_MODAL,
+                    GTK_MESSAGE_ERROR,
+                    GTK_BUTTONS_OK,
+                    "Error reading node names from file");
+                gtk_dialog_run(GTK_DIALOG(error_dialog));
+                gtk_widget_destroy(error_dialog);
+                fclose(file);
+                g_free(filename);
+                gtk_widget_destroy(dialog);
+                return;
+            }
+
+            // Set node name in row and column headers
+            GtkWidget *col_entry = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), i + 1, 0);
+            GtkWidget *row_entry = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), 0, i + 1);
+            
+            g_signal_handlers_block_by_func(col_entry, on_name_changed, row_entry);
+            g_signal_handlers_block_by_func(row_entry, on_name_changed, col_entry);
+            
+            gtk_entry_set_text(GTK_ENTRY(col_entry), node_name);
+            gtk_entry_set_text(GTK_ENTRY(row_entry), node_name);
+            
+            g_signal_handlers_unblock_by_func(col_entry, on_name_changed, row_entry);
+            g_signal_handlers_unblock_by_func(row_entry, on_name_changed, col_entry);
+        }
+
+        // Read distances
+        for (int i = 0; i < nodes; i++)
+        {
+            for (int j = 0; j < nodes; j++)
+            {
+                int distance;
+                if (fscanf(file, "%d", &distance) != 1)
+                {
+                    GtkWidget *error_dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                        GTK_DIALOG_MODAL,
+                        GTK_MESSAGE_ERROR,
+                        GTK_BUTTONS_OK,
+                        "Error reading distances from file");
+                    gtk_dialog_run(GTK_DIALOG(error_dialog));
+                    gtk_widget_destroy(error_dialog);
+                    fclose(file);
+                    g_free(filename);
+                    gtk_widget_destroy(dialog);
+                    return;
+                }
+
+                GtkWidget *entry = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), j + 1, i + 1);
+                if (entry && GTK_IS_ENTRY(entry))
+                {
+                    g_signal_handlers_block_by_func(entry, on_entry_changed, NULL);
+                    
+                    if (distance >= 99999)
+                        gtk_entry_set_text(GTK_ENTRY(entry), "∞");
+                    else
+                    {
+                        char dist_str[10];
+                        snprintf(dist_str, sizeof(dist_str), "%d", distance);
+                        gtk_entry_set_text(GTK_ENTRY(entry), dist_str);
+                    }
+                    
+                    g_signal_handlers_unblock_by_func(entry, on_entry_changed, NULL);
+                }
+            }
+        }
+
+        fclose(file);
+        g_free(filename);
+
+        // Switch to the distance input page
+        gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page1");
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
+{
+    // Check if we have a valid table to save
+    if (nodes == 0)
+    {
+        GtkWidget *error_dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+            GTK_DIALOG_MODAL,
+            GTK_MESSAGE_WARNING,
+            GTK_BUTTONS_OK,
+            "No data to save. Please create a table first.");
+        gtk_dialog_run(GTK_DIALOG(error_dialog));
+        gtk_widget_destroy(error_dialog);
+        return;
+    }
+
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new("Save Floyd File",
+                                       NULL,
+                                       action,
+                                       "_Cancel", GTK_RESPONSE_CANCEL,
+                                       "_Save", GTK_RESPONSE_ACCEPT,
+                                       NULL);
+
+    // Set file filter for .floyd files
+    GtkFileFilter *filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "Floyd files (*.floyd)");
+    gtk_file_filter_add_pattern(filter, "*.floyd");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+    // Set default extension
+    gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+
+    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        filename = gtk_file_chooser_get_filename(chooser);
+
+        // Add .floyd extension
+        char *final_filename;
+        if (!g_str_has_suffix(filename, ".floyd"))
+        {
+            final_filename = g_strconcat(filename, ".floyd", NULL);
+        }
+        else
+        {
+            final_filename = g_strdup(filename);
+        }
+
+        FILE *file = fopen(final_filename, "w");
+        if (file == NULL)
+        {
+            GtkWidget *error_dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                GTK_DIALOG_MODAL,
+                GTK_MESSAGE_ERROR,
+                GTK_BUTTONS_OK,
+                "Error creating file: %s", final_filename);
+            gtk_dialog_run(GTK_DIALOG(error_dialog));
+            gtk_widget_destroy(error_dialog);
+            g_free(filename);
+            g_free(final_filename);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Save number of nodes
+        fprintf(file, "%d\n", nodes);
+
+        // Save node names
+        for (int i = 1; i <= nodes; i++)
+        {
+            GtkWidget *entry = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), i, 0);
+            const char *node_name = gtk_entry_get_text(GTK_ENTRY(entry));
+            fprintf(file, "%s ", node_name);
+        }
+        fprintf(file, "\n");
+
+        // Save distances
+        for (int i = 1; i <= nodes; i++)
+        {
+            for (int j = 1; j <= nodes; j++)
+            {
+                GtkWidget *entry = gtk_grid_get_child_at(GTK_GRID(distance_input_grid), j, i);
+                const char *text = gtk_entry_get_text(GTK_ENTRY(entry));
+                
+                int distance;
+                if (g_strcmp0(text, "∞") == 0)
+                    distance = 99999;
+                else
+                    distance = atoi(text);
+                
+                fprintf(file, "%d ", distance);
+            }
+            fprintf(file, "\n");
+        }
+
+        fclose(file);
+        g_free(filename);
+        g_free(final_filename);
+    }
+
+    gtk_widget_destroy(dialog);
 }
 
 int main(int argc, char *argv[])
@@ -383,18 +729,18 @@ int main(int argc, char *argv[])
     // GtkBuilder *builder = gtk_builder_new_from_file("Floyd/floyd.glade"); //Si se abre desde el menu
     GtkBuilder *builder = gtk_builder_new_from_file("floyd.glade"); // Si se abre SIN en menu
 
-    GtkWidget *window = GTK_WIDGET(gtk_builder_get_object(builder, "hWindow"));
+    main_window = GTK_WIDGET(gtk_builder_get_object(builder, "hWindow"));
 
     gtk_builder_connect_signals(builder, NULL);
 
     // exit
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     main_stack = GTK_WIDGET(gtk_builder_get_object(builder, "mainStack"));
     num_nodes_spin = GTK_WIDGET(gtk_builder_get_object(builder, "numNodesSpin"));
     distance_input_grid = GTK_WIDGET(gtk_builder_get_object(builder, "distance_input_grid"));
 
-    gtk_widget_show_all(window);
+    gtk_widget_show_all(main_window);
 
     gtk_main();
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2025.9.9)  9 SEP 2025 23:02
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2025.9.9)  10 SEP 2025 21:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -967,19 +967,19 @@ Overfull \hbox (56.79327pt too wide) has occurred while \output is active
 [2
 
 ]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 45.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 39.
 
  (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 45.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 39.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on inp
-ut line 45.
+ut line 39.
 
 (/usr/share/texlive/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
 File: ot1mathkerncmss.fd 2020/01/31 Fontinst v1.933 font definitions for OT1/ma
@@ -1034,27 +1034,6 @@ Overfull \hbox (56.79327pt too wide) has occurred while \output is active
 [9
 
 ]
-Overfull \hbox (56.79327pt too wide) has occurred while \output is active
- [][]  \OT1/cmss/m/n/6 ([])  
- []
-
-[10
-
-]
-Overfull \hbox (56.79327pt too wide) has occurred while \output is active
- [][]  \OT1/cmss/m/n/6 ([])  
- []
-
-[11
-
-]
-Overfull \hbox (56.79327pt too wide) has occurred while \output is active
- [][]  \OT1/cmss/m/n/6 ([])  
- []
-
-[12
-
-]
 \tf@nav=\write6
 \openout6 = `output.nav'.
 
@@ -1069,27 +1048,27 @@ Package rerunfilecheck Info: File `output.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 25382 strings out of 480247
- 512473 string characters out of 5896152
- 751752 words of memory out of 5000000
- 42788 multiletter control sequences out of 15000+600000
+ 25324 strings out of 480247
+ 511440 string characters out of 5896152
+ 749742 words of memory out of 5000000
+ 42736 multiletter control sequences out of 15000+600000
  476009 words of font info for 52 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 128i,16n,122p,403b,921s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{Navigation13} has been referenced but does not ex
+ 128i,16n,122p,403b,742s stack positions out of 5000i,500n,10000p,200000b,80000s
+pdfTeX warning (dest): name{Navigation10} has been referenced but does not ex
 ist, replaced by a fixed one
 
-pdfTeX warning (dest): name{Navigation15} has been referenced but does not exis
+pdfTeX warning (dest): name{Navigation12} has been referenced but does not exis
 t, replaced by a fixed one
 
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/
 share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/share/
 texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texlive
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on output.pdf (12 pages, 72619 bytes).
+Output written on output.pdf (9 pages, 66139 bytes).
 PDF statistics:
- 376 PDF objects out of 1000 (max. 8388607)
- 336 compressed objects within 4 object streams
- 27 named destinations out of 1000 (max. 500000)
+ 296 PDF objects out of 1000 (max. 8388607)
+ 260 compressed objects within 3 object streams
+ 21 named destinations out of 1000 (max. 500000)
  85 words of extra memory for PDF output out of 10000 (max. 10000000)
 
