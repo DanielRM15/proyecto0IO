@@ -130,7 +130,7 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Enter the distances between the nodes (-1 for infinite):</property>
+                <property name="label" translatable="yes">Enter the distances between the nodes (- for infinite):</property>
                 <attributes>
                   <attribute name="font-desc" value="Monospace Bold 14"/>
                 </attributes>

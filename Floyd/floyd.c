@@ -22,6 +22,13 @@ char **node_names;
 void on_insert_text(GtkEditable *editable, const gchar *text, gint length, gint *position, gpointer user_data)
 {
     const gchar *current_text = gtk_entry_get_text(GTK_ENTRY(editable));
+
+    // If current text contains infinity symbol don't allow any input
+    if (strstr(current_text, "∞") != NULL)
+    {
+        g_signal_stop_emission_by_name(editable, "insert-text");
+        return;
+    }
     
     // Check if all characters in the text are digits or minus sign
     for (int i = 0; i < length; i++)
@@ -40,32 +47,25 @@ void on_insert_text(GtkEditable *editable, const gchar *text, gint length, gint 
         return;
     }
     
-    if (strchr(text, '-') || strchr(current_text, '-'))
+    // If current text contains minus dont allow any more characters
+    if (strchr(current_text, '-'))
     {
-
-        for (int i = 0; i < length; i++)
-        {
-            if (g_ascii_isdigit(text[i]) && text[i] != '1')
-            {
-                g_signal_stop_emission_by_name(editable, "insert-text");
-                return;
-            }
-        }
-        
-        // If current text already has -1
-        if (strlen(current_text) >= 2 || (strlen(current_text) == 1 && current_text[0] == '-' && strchr(text, '1') && length > 1))
-        {
-            g_signal_stop_emission_by_name(editable, "insert-text");
-            return;
-        }
-    }
+        g_signal_stop_emission_by_name(editable, "insert-text");
         return;
+    }
+    
+    // If trying to insert minus dont allow any digits after it
+    if (strchr(text, '-') && length > 1)
+    {
+        g_signal_stop_emission_by_name(editable, "insert-text");
+        return;
+    }
 }
 
 static void on_entry_changed(GtkEditable *editable, gpointer user_data) {
     const gchar *text = gtk_entry_get_text(GTK_ENTRY(editable));
 
-    if (g_strcmp0(text, "-1") == 0) {
+    if (g_strcmp0(text, "-") == 0) {
         // block validator + self
         g_signal_handlers_block_by_func(editable, on_insert_text, NULL);
         g_signal_handlers_block_by_func(editable, on_entry_changed, user_data);
@@ -142,7 +142,7 @@ void create_distance_table()
                 gtk_widget_set_sensitive(to_attach, FALSE);
             }
             else
-                gtk_entry_set_text(GTK_ENTRY(to_attach), "-1");
+                gtk_entry_set_text(GTK_ENTRY(to_attach), "-");
             gtk_grid_attach(GTK_GRID(distance_input_grid), to_attach, j, i, 1, 1);
         }
     }
@@ -153,6 +153,87 @@ void print_cover_slide()
 {
     fprintf(output_file, "\\begin{frame}[plain]\n\\titlepage\\end{frame}\n\n");
 }
+
+void print_Floyd_intro() {
+    //slide 1
+    fprintf(output_file, 
+        "\\begin{frame}{Robert W. Floyd}\n"
+        "\\begin{columns}\n"
+        " \\begin{column}{0.60\\textwidth}\n"
+        "  \\begin{itemize}\n"
+        "\\item American computer scientist (1936 - 2001)\n"
+        "\\item Studied physics at the University of Chicago, B.A. at age \\textbf{19}\n"
+        "\\item No formal CS degree → self-taught programming and algorithms\n"
+        "\\item Worked as a math teacher, then in computing → professor at Stanford\n"
+        "\\item Published foundational papers in computational theory\n"
+        "\\item Collaborated with \textbf{Donald Knuth} on \"The Art of Computer Programming\"\n"
+        "\\item Created cycle detection and \\textbf{shortest paths} algorithms\n"
+        "\\item Received the \\textbf{Turing Award (1978)}\n"
+        "\\end{itemize}\n"
+        " \\end{column}\n"
+        " \\begin{column}{0.40\\textwidth}\n"
+        "\\includegraphics[width=\\linewidth,height=0.85\\textheight,keepaspectratio]{Floyd/floyd-small.jpg}\n"
+        " \\end{column}\n"
+        "\\end{columns}\n"
+        "\\end{frame}\n\n"
+    );
+
+    //slide 2
+    fprintf(output_file,
+        "\\begin{frame}{Floyd Algorithm (Floyd--Warshall Algorithm)}\n"
+        "  \\begin{itemize}\n"
+        "    \\item The Floyd Algorithm computes the \\textbf{shortest paths between all pairs of nodes} in a graph with edge weights\n"
+        "    \\item Works for both directed and undirected graphs\n"
+        "    \\item \\textbf{Time Complexity:} $O(n^3)$\n"
+        "      \\begin{itemize}\n"
+        "        \\item For each new node considered as an intermediate step, an entire $n \\times n$ table is updated\n"
+        "      \\end{itemize}\n"
+        "    \\item \\textbf{Space Complexity:} $O(n^2)$\n"
+        "      \\begin{itemize}\n"
+        "        \\item All calculations are performed within the same distance table\n"
+        "      \\end{itemize}\n"
+        "    \\item Based on the principle of \\textbf{dynamic programming}\n"
+        "    \\item It has applications in network routing and navigation systems\n"
+        "  \\end{itemize}\n"
+        "  \\begin{center}\n"
+        "    \\includegraphics[width=0.35\\textwidth,keepaspectratio]{Floyd/floydGraph.png}\n"
+        "  \\end{center}\n"
+        "\\end{frame}\n\n"
+    );
+
+    //slide 3
+    fprintf(output_file,
+        "\\begin{frame}{Floyd Algorithm Overview}\n"
+        "  \\begin{itemize}\n"
+        "    \\item There are two tables: \\textbf{D} and \\textbf{P}.\n"
+        "    \\item \\textbf{D table:} stores distances between any two nodes.\n"
+        "      \\begin{itemize}\n"
+        "        \\item $D[i][i] = 0$ (distance from a node to itself).\n"
+        "        \\item If edge $(i,j)$ exists, then $D[i][j] =$ weight of that edge, otherwise $D[i][j] = \\infty$.\n"
+        "      \\end{itemize}\n"
+        "    \\item \\textbf{P table:} stores path reconstruction information.\n"
+        "      \\begin{itemize}\n"
+        "        \\item P table is initialized with \\textbf{0} on every cell (This means that there is a direct path between the two nodes)\n"
+        "      \\end{itemize}\n"
+        "    \\item \\textbf{Algorithm process:}\n"
+        "      \\begin{itemize}\n"
+        "        \\item For each node $k = 1$ to $n$ (considered as an intermediate node):\n"
+        "        \\item For each pair of nodes $(i,j)$, check if going through $k$ is shorter:\n"
+        "        \\[\n"
+        "        D(k)[i][j] = \\min\\{D(k-1)[i][j],\\; D(k-1)[i][k] + D(k-1)[k][j]\\}\n"
+        "        \\]\n"
+        "        \\item Update $P[i][j]$ with the value k if there was a change in $D[i][j]$. (meaning we go through k to get from i to j)\n"
+        "      \\end{itemize}\n"
+        "    \\item After all iterations:\n"
+        "      \\begin{itemize}\n"
+        "        \\item $D$ contains shortest distances.\n"
+        "        \\item $P$ contains the information to reconstruct the shortest paths.\n"
+        "      \\end{itemize}\n"
+        "  \\end{itemize}\n"
+        "\\end{frame}\n\n"
+    );
+}
+
 
 void setup_latex()
 {
@@ -167,11 +248,12 @@ void setup_latex()
         "\\title{Floyd's Algorithm: Shortest Path Problem}\n"
         "\\subtitle{Project 1}\n"
         "\\author{Daniel Romero - 2023059668 \\break Adrián Zamora - 2023083307}\n"
-        "\\institute[TEC]{\\break Escuela de Ingeniería en Computación \\break Instituto Tecnológico de Costa Rica \\break II Semestre 2025}\n"
+        "\\institute[TEC]{\\break Escuela de Ingeniería en Computación \\break Instituto Tecnológico de Costa Rica \\break Semester II 2025}\n"
         "\\date{September 12, 2025}\n"
         "\\begin{document}\n\n"
     );
     print_cover_slide();
+    print_Floyd_intro(); 
 }
 
 void print_graph_latex()
@@ -272,7 +354,7 @@ void floyd()
             }
         }
         char slide_title[64];
-        sprintf(slide_title, "Table D(%s)", node_names[k]);
+        sprintf(slide_title, "Table D(%d)", k+1);
         print_table_latex(slide_title, D);
         print_table_latex("Table P", P);
     }
@@ -291,8 +373,16 @@ void print_shortest_paths()
         {
             if (i == j)
                 continue;
-
-            fprintf(output_file, "\\item to %s (%d): %s $\\rightarrow$ ", node_names[j], D[i][j], node_names[i]);
+            
+            int distance = D[i][j];
+            if (distance >= 99999) // No path exists
+            {
+                fprintf(output_file, "\\item to %s ($\\infty$): %s $\\rightarrow$ ", node_names[j], node_names[i]);
+            }
+            else
+            {
+                fprintf(output_file, "\\item to %s (%d): %s $\\rightarrow$ ", node_names[j], D[i][j], node_names[i]);
+            }
 
             int z = i;
             int w = j;
@@ -421,7 +511,7 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
         return; // Stop execution if validation fails
     }
 
-    output_file = fopen("output.tex", "w");
+    output_file = fopen("Floyd/output.tex", "w");
     setup_latex();
     if (output_file == NULL)
     {
@@ -462,7 +552,7 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     free(node_names);
     fclose(output_file);
 
-    system("pdflatex output.tex");
+    system("pdflatex Floyd/output.tex");
     system("evince --presentation output.pdf");
 }
 
@@ -726,8 +816,8 @@ int main(int argc, char *argv[])
 {
     gtk_init(&argc, &argv);
 
-    // GtkBuilder *builder = gtk_builder_new_from_file("Floyd/floyd.glade"); //Si se abre desde el menu
-    GtkBuilder *builder = gtk_builder_new_from_file("floyd.glade"); // Si se abre SIN en menu
+    GtkBuilder *builder = gtk_builder_new_from_file("Floyd/floyd.glade"); //Si se abre desde el menu
+    // GtkBuilder *builder = gtk_builder_new_from_file("floyd.glade"); // Si se abre SIN en menu
 
     main_window = GTK_WIDGET(gtk_builder_get_object(builder, "hWindow"));
 
