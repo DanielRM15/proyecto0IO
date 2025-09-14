@@ -1,0 +1,314 @@
+\PassOptionsToPackage{table}{xcolor}
+\documentclass[xcolor=table]{beamer}
+\usetheme{Madrid}
+\usepackage{tikz, xcolor}
+\usetikzlibrary{arrows.meta}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\title{Floyd's Algorithm: Shortest Path Problem}
+\subtitle{Project 1}
+\author{Daniel Romero - 2023059668 \break Adrián Zamora - 2023083307}
+\institute[TEC]{\break Escuela de Ingeniería en Computación \break Instituto Tecnológico de Costa Rica \break Semester II 2025}
+\date{September 12, 2025}
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage\end{frame}
+
+\begin{frame}{Robert W. Floyd}
+\begin{columns}
+ \begin{column}{0.60\textwidth}
+  \begin{itemize}
+\item American computer scientist (1936 - 2001)
+\item Studied physics at the University of Chicago, B.A. at age \textbf{19}
+\item No formal CS degree → self-taught programming and algorithms
+\item Worked as a math teacher, then in computing → professor at Stanford
+\item Published foundational papers in computational theory
+\item Collaborated with \textbf{Donald Knuth} on "The Art of Computer Programming"
+\item Created cycle detection and \textbf{shortest paths} algorithms
+\item Received the \textbf{Turing Award (1978)}
+\end{itemize}
+ \end{column}
+ \begin{column}{0.40\textwidth}
+\includegraphics[width=\linewidth,height=0.85\textheight,keepaspectratio]{Floyd/floyd-small.jpg}
+ \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Floyd Algorithm (Floyd--Warshall Algorithm)}
+  \begin{itemize}
+    \item The Floyd Algorithm computes the \textbf{shortest paths between all pairs of nodes} in a graph with edge weights
+    \item Works for both directed and undirected graphs
+    \item \textbf{Time Complexity:} $O(n^3)$
+      \begin{itemize}
+        \item For each new node considered as an intermediate step, an entire $n \times n$ table is updated
+      \end{itemize}
+    \item \textbf{Space Complexity:} $O(n^2)$
+      \begin{itemize}
+        \item All calculations are performed within the same distance table
+      \end{itemize}
+    \item Based on the principle of \textbf{dynamic programming}
+    \item It has applications in network routing and navigation systems
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.35\textwidth,keepaspectratio]{Floyd/floydGraph.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Floyd Algorithm Overview}
+  \begin{itemize}
+    \item There are two tables: \textbf{D} and \textbf{P}.
+    \item \textbf{D table:} stores distances between any two nodes.
+      \begin{itemize}
+        \item $D[i][i] = 0$ (distance from a node to itself).
+        \item If edge $(i,j)$ exists, then $D[i][j] =$ weight of that edge, otherwise $D[i][j] = \infty$.
+      \end{itemize}
+    \item \textbf{P table:} stores path reconstruction information.
+      \begin{itemize}
+        \item P table is initialized with \textbf{0} on every cell (This means that there is a direct path between the two nodes)
+      \end{itemize}
+    \item \textbf{Algorithm process:}
+      \begin{itemize}
+        \item For each node $k = 1$ to $n$ (considered as an intermediate node):
+        \item For each pair of nodes $(i,j)$, check if going through $k$ is shorter:
+        \[
+        D(k)[i][j] = \min\{D(k-1)[i][j],\; D(k-1)[i][k] + D(k-1)[k][j]\}
+        \]
+        \item Update $P[i][j]$ with the value k if there was a change in $D[i][j]$. (meaning we go through k to get from i to j)
+      \end{itemize}
+    \item After all iterations:
+      \begin{itemize}
+        \item $D$ contains shortest distances.
+        \item $P$ contains the information to reconstruct the shortest paths.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graph}
+\begin{center}
+\begin{tikzpicture}[->, >=Stealth, thick, main/.style={circle, draw, minimum size=1cm}]
+
+    \node[main] (v1) at (0.00:3cm) {v1};
+    \node[main] (v2) at (72.00:3cm) {v2};
+    \node[main] (v3) at (144.00:3cm) {v3};
+    \node[main] (v4) at (216.00:3cm) {v4};
+    \node[main] (v5) at (288.00:3cm) {v5};
+\path
+        (v1) edge[bend left=15] node[above, fill=none] {6} (v2)
+        (v1) edge[bend left=15] node[below, fill=none] {4} (v4)
+        (v1) edge[bend left=15] node[below, fill=none] {7} (v5)
+        (v2) edge[bend left=15] node[below, fill=none] {9} (v1)
+        (v2) edge[bend left=15] node[above, fill=none] {7} (v3)
+        (v3) edge[bend left=15] node[below, fill=none] {5} (v2)
+        (v3) edge[bend left=15] node[above, fill=none] {14} (v5)
+        (v4) edge[bend left=15] node[above, fill=none] {8} (v1)
+        (v4) edge[bend left=15] node[below, fill=none] {1} (v2)
+        (v4) edge[bend left=15] node[above, fill=none] {15} (v5)
+        (v5) edge[bend left=15] node[above, fill=none] {2} (v1)
+        (v5) edge[bend left=15] node[below, fill=none] {2} (v3)
+        (v5) edge[bend left=15] node[below, fill=none] {19} (v4)
+;
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\begin{frame}{Table D(0)}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 6 & $\infty$ & 4 & 7 \\
+v2 & 9 & 0 & 7 & $\infty$ & $\infty$ \\
+v3 & $\infty$ & 5 & 0 & $\infty$ & 14 \\
+v4 & 8 & 1 & $\infty$ & 0 & 15 \\
+v5 & 2 & $\infty$ & 2 & 19 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table D(1)}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 6 & $\infty$ & 4 & 7 \\
+v2 & 9 & 0 & 7 & \textcolor{blue}{13} & \textcolor{blue}{16} \\
+v3 & $\infty$ & 5 & 0 & $\infty$ & 14 \\
+v4 & 8 & 1 & $\infty$ & 0 & 15 \\
+v5 & 2 & \textcolor{blue}{8} & 2 & \textcolor{blue}{6} & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table P}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 0 & 0 & 0 & 0 \\
+v2 & 0 & 0 & 0 & \textcolor{blue}{1} & \textcolor{blue}{1} \\
+v3 & 0 & 0 & 0 & 0 & 0 \\
+v4 & 0 & 0 & 0 & 0 & 0 \\
+v5 & 0 & \textcolor{blue}{1} & 0 & \textcolor{blue}{1} & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table D(2)}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 6 & \textcolor{blue}{13} & 4 & 7 \\
+v2 & 9 & 0 & 7 & 13 & 16 \\
+v3 & \textcolor{blue}{14} & 5 & 0 & \textcolor{blue}{18} & 14 \\
+v4 & 8 & 1 & \textcolor{blue}{8} & 0 & 15 \\
+v5 & 2 & 8 & 2 & 6 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table P}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 0 & \textcolor{blue}{2} & 0 & 0 \\
+v2 & 0 & 0 & 0 & 1 & 1 \\
+v3 & \textcolor{blue}{2} & 0 & 0 & \textcolor{blue}{2} & 0 \\
+v4 & 0 & 0 & \textcolor{blue}{2} & 0 & 0 \\
+v5 & 0 & 1 & 0 & 1 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table D(3)}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 6 & 13 & 4 & 7 \\
+v2 & 9 & 0 & 7 & 13 & 16 \\
+v3 & 14 & 5 & 0 & 18 & 14 \\
+v4 & 8 & 1 & 8 & 0 & 15 \\
+v5 & 2 & \textcolor{blue}{7} & 2 & 6 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table P}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 0 & 2 & 0 & 0 \\
+v2 & 0 & 0 & 0 & 1 & 1 \\
+v3 & 2 & 0 & 0 & 2 & 0 \\
+v4 & 0 & 0 & 2 & 0 & 0 \\
+v5 & 0 & \textcolor{blue}{3} & 0 & 1 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table D(4)}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & \textcolor{blue}{5} & \textcolor{blue}{12} & 4 & 7 \\
+v2 & 9 & 0 & 7 & 13 & 16 \\
+v3 & 14 & 5 & 0 & 18 & 14 \\
+v4 & 8 & 1 & 8 & 0 & 15 \\
+v5 & 2 & 7 & 2 & 6 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table P}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & \textcolor{blue}{4} & \textcolor{blue}{4} & 0 & 0 \\
+v2 & 0 & 0 & 0 & 1 & 1 \\
+v3 & 2 & 0 & 0 & 2 & 0 \\
+v4 & 0 & 0 & 2 & 0 & 0 \\
+v5 & 0 & 3 & 0 & 1 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table D(5)}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 5 & \textcolor{blue}{9} & 4 & 7 \\
+v2 & 9 & 0 & 7 & 13 & 16 \\
+v3 & 14 & 5 & 0 & 18 & 14 \\
+v4 & 8 & 1 & 8 & 0 & 15 \\
+v5 & 2 & 7 & 2 & 6 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Table P}
+    \begin{center}
+        \begin{tabular}{c|ccccc}
+         & v1 & v2 & v3 & v4 & v5 \\
+\hline
+v1 & 0 & 4 & \textcolor{blue}{5} & 0 & 0 \\
+v2 & 0 & 0 & 0 & 1 & 1 \\
+v3 & 2 & 0 & 0 & 2 & 0 \\
+v4 & 0 & 0 & 2 & 0 & 0 \\
+v5 & 0 & 3 & 0 & 1 & 0 \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v1}
+\begin{itemize}
+    \item to v2 (5): v1 $\rightarrow$  v4 $\rightarrow$ v2
+\item to v3 (9): v1 $\rightarrow$  v5 $\rightarrow$ v3
+\item to v4 (4): v1 $\rightarrow$ v4
+\item to v5 (7): v1 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v2}
+\begin{itemize}
+    \item to v1 (9): v2 $\rightarrow$ v1
+\item to v3 (7): v2 $\rightarrow$ v3
+\item to v4 (13): v2 $\rightarrow$  v1 $\rightarrow$ v4
+\item to v5 (16): v2 $\rightarrow$  v1 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v3}
+\begin{itemize}
+    \item to v1 (14): v3 $\rightarrow$  v2 $\rightarrow$ v1
+\item to v2 (5): v3 $\rightarrow$ v2
+\item to v4 (18): v3 $\rightarrow$  v2 $\rightarrow$  v1 $\rightarrow$ v4
+\item to v5 (14): v3 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v4}
+\begin{itemize}
+    \item to v1 (8): v4 $\rightarrow$ v1
+\item to v2 (1): v4 $\rightarrow$ v2
+\item to v3 (8): v4 $\rightarrow$  v2 $\rightarrow$ v3
+\item to v5 (15): v4 $\rightarrow$ v5
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths from v5}
+\begin{itemize}
+    \item to v1 (2): v5 $\rightarrow$ v1
+\item to v2 (7): v5 $\rightarrow$  v3 $\rightarrow$ v2
+\item to v3 (2): v5 $\rightarrow$ v3
+\item to v4 (6): v5 $\rightarrow$  v1 $\rightarrow$ v4
+\end{itemize}
+\end{frame}
+
+\end{document}

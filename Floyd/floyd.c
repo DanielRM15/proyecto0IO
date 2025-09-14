@@ -166,7 +166,7 @@ void print_Floyd_intro() {
         "\\item No formal CS degree → self-taught programming and algorithms\n"
         "\\item Worked as a math teacher, then in computing → professor at Stanford\n"
         "\\item Published foundational papers in computational theory\n"
-        "\\item Collaborated with \textbf{Donald Knuth} on \"The Art of Computer Programming\"\n"
+        "\\item Collaborated with \\textbf{Donald Knuth} on \"The Art of Computer Programming\"\n"
         "\\item Created cycle detection and \\textbf{shortest paths} algorithms\n"
         "\\item Received the \\textbf{Turing Award (1978)}\n"
         "\\end{itemize}\n"
@@ -262,7 +262,6 @@ void print_graph_latex()
     fprintf(output_file, "\\begin{center}\n");
     fprintf(output_file, "\\begin{tikzpicture}[->, >=Stealth, thick, main/.style={circle, draw, minimum size=1cm}]\n\n");
 
-    // Place nodes on a circle
     for (int i = 0; i < nodes; i++)
     {
         double angle = 360.0 / nodes * i;
@@ -272,15 +271,13 @@ void print_graph_latex()
 
     fprintf(output_file, "\\path\n");
 
-    // Draw edges where D[i][j] <= 9999
     for (int i = 0; i < nodes; i++)
     {
         for (int j = 0; j < nodes; j++)
         {
             if (i != j && D[i][j] <= 9999)
             {
-                // Choose label position dynamically based on node positions
-                const char *pos = "above"; // default
+                const char *pos = "above";
                 if ((j - i + nodes) % nodes > nodes / 2)
                     pos = "below";
 
@@ -360,6 +357,16 @@ void floyd()
     }
 }
 
+void print_recursive(int i, int j) {
+	if (P[i][j] == 0) {
+		return;
+	}
+	int k = P[i][j] - 1;
+	print_recursive(i, k);
+	fprintf(output_file, " %s $\\rightarrow$ ", node_names[k]);
+	print_recursive(k, j);
+}
+
 void print_shortest_paths()
 {
     for (int i = 0; i < nodes; i++)
@@ -377,19 +384,12 @@ void print_shortest_paths()
             int distance = D[i][j];
             if (distance >= 99999) // No path exists
             {
-                fprintf(output_file, "\\item to %s ($\\infty$): %s $\\rightarrow$ ", node_names[j], node_names[i]);
+                fprintf(output_file, "\\item to %s ($\\infty$)", node_names[j]);
             }
             else
             {
                 fprintf(output_file, "\\item to %s (%d): %s $\\rightarrow$ ", node_names[j], D[i][j], node_names[i]);
-            }
-
-            int z = i;
-            int w = j;
-            while (P[z][w] != 0)
-            {
-                fprintf(output_file, "%s $\\rightarrow$ ", node_names[P[z][w] - 1]);
-                z = P[z][w] - 1;
+                print_recursive(i, j);
             }
             fprintf(output_file, "%s\n", node_names[j]);
         }
@@ -553,7 +553,7 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     fclose(output_file);
 
     system("pdflatex Floyd/output.tex");
-    system("evince --presentation output.pdf");
+    system("evince --presentation output.pdf &");
 }
 
 void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
