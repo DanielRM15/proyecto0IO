@@ -88,25 +88,19 @@
 \begin{center}
 \begin{tikzpicture}[->, >=Stealth, thick, main/.style={circle, draw, minimum size=1cm}]
 
-    \node[main] (v1) at (0.00:3cm) {v1};
-    \node[main] (v2) at (72.00:3cm) {v2};
-    \node[main] (v3) at (144.00:3cm) {v3};
-    \node[main] (v4) at (216.00:3cm) {v4};
-    \node[main] (v5) at (288.00:3cm) {v5};
+    \node[main] (A) at (0.00:3cm) {A};
+    \node[main] (B) at (90.00:3cm) {B};
+    \node[main] (C) at (180.00:3cm) {C};
+    \node[main] (D) at (270.00:3cm) {D};
 \path
-        (v1) edge[bend left=15] node[above, fill=none] {6} (v2)
-        (v1) edge[bend left=15] node[below, fill=none] {4} (v4)
-        (v1) edge[bend left=15] node[below, fill=none] {7} (v5)
-        (v2) edge[bend left=15] node[below, fill=none] {9} (v1)
-        (v2) edge[bend left=15] node[above, fill=none] {7} (v3)
-        (v3) edge[bend left=15] node[below, fill=none] {5} (v2)
-        (v3) edge[bend left=15] node[above, fill=none] {14} (v5)
-        (v4) edge[bend left=15] node[above, fill=none] {8} (v1)
-        (v4) edge[bend left=15] node[below, fill=none] {1} (v2)
-        (v4) edge[bend left=15] node[above, fill=none] {15} (v5)
-        (v5) edge[bend left=15] node[above, fill=none] {2} (v1)
-        (v5) edge[bend left=15] node[below, fill=none] {2} (v3)
-        (v5) edge[bend left=15] node[below, fill=none] {19} (v4)
+        (A) edge[bend left=15] node[above, fill=none] {3} (B)
+        (A) edge[bend left=15] node[above, fill=none] {5} (C)
+        (A) edge[bend left=15] node[below, fill=none] {3} (D)
+        (B) edge[bend left=15] node[below, fill=none] {4} (A)
+        (C) edge[bend left=15] node[above, fill=none] {5} (A)
+        (C) edge[bend left=15] node[above, fill=none] {2} (D)
+        (D) edge[bend left=15] node[above, fill=none] {4} (B)
+        (D) edge[bend left=15] node[below, fill=none] {6} (C)
 ;
 \end{tikzpicture}
 \end{center}
@@ -114,200 +108,150 @@
 
 \begin{frame}{Table D(0)}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & 6 & $\infty$ & 4 & 7 \\
-v2 & 9 & 0 & 7 & $\infty$ & $\infty$ \\
-v3 & $\infty$ & 5 & 0 & $\infty$ & 14 \\
-v4 & 8 & 1 & $\infty$ & 0 & 15 \\
-v5 & 2 & $\infty$ & 2 & 19 & 0 \\
+A & 0 & 3 & 5 & 3 \\
+B & 4 & 0 & $\infty$ & $\infty$ \\
+C & 5 & $\infty$ & 0 & 2 \\
+D & $\infty$ & 4 & 6 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table D(1)}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & 6 & $\infty$ & 4 & 7 \\
-v2 & 9 & 0 & 7 & \textcolor{blue}{13} & \textcolor{blue}{16} \\
-v3 & $\infty$ & 5 & 0 & $\infty$ & 14 \\
-v4 & 8 & 1 & $\infty$ & 0 & 15 \\
-v5 & 2 & \textcolor{blue}{8} & 2 & \textcolor{blue}{6} & 0 \\
+A & 0 & 3 & 5 & 3 \\
+B & 4 & 0 & \textcolor{blue}{9} & \textcolor{blue}{7} \\
+C & 5 & \textcolor{blue}{8} & 0 & 2 \\
+D & $\infty$ & 4 & 6 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table P}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & 0 & 0 & 0 & 0 \\
-v2 & 0 & 0 & 0 & \textcolor{blue}{1} & \textcolor{blue}{1} \\
-v3 & 0 & 0 & 0 & 0 & 0 \\
-v4 & 0 & 0 & 0 & 0 & 0 \\
-v5 & 0 & \textcolor{blue}{1} & 0 & \textcolor{blue}{1} & 0 \\
+A & 0 & 0 & 0 & 0 \\
+B & 0 & 0 & \textcolor{blue}{1} & \textcolor{blue}{1} \\
+C & 0 & \textcolor{blue}{1} & 0 & 0 \\
+D & 0 & 0 & 0 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table D(2)}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & 6 & \textcolor{blue}{13} & 4 & 7 \\
-v2 & 9 & 0 & 7 & 13 & 16 \\
-v3 & \textcolor{blue}{14} & 5 & 0 & \textcolor{blue}{18} & 14 \\
-v4 & 8 & 1 & \textcolor{blue}{8} & 0 & 15 \\
-v5 & 2 & 8 & 2 & 6 & 0 \\
+A & 0 & 3 & 5 & 3 \\
+B & 4 & 0 & 9 & 7 \\
+C & 5 & 8 & 0 & 2 \\
+D & \textcolor{blue}{8} & 4 & 6 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table P}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & 0 & \textcolor{blue}{2} & 0 & 0 \\
-v2 & 0 & 0 & 0 & 1 & 1 \\
-v3 & \textcolor{blue}{2} & 0 & 0 & \textcolor{blue}{2} & 0 \\
-v4 & 0 & 0 & \textcolor{blue}{2} & 0 & 0 \\
-v5 & 0 & 1 & 0 & 1 & 0 \\
+A & 0 & 0 & 0 & 0 \\
+B & 0 & 0 & 1 & 1 \\
+C & 0 & 1 & 0 & 0 \\
+D & \textcolor{blue}{2} & 0 & 0 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table D(3)}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & 6 & 13 & 4 & 7 \\
-v2 & 9 & 0 & 7 & 13 & 16 \\
-v3 & 14 & 5 & 0 & 18 & 14 \\
-v4 & 8 & 1 & 8 & 0 & 15 \\
-v5 & 2 & \textcolor{blue}{7} & 2 & 6 & 0 \\
+A & 0 & 3 & 5 & 3 \\
+B & 4 & 0 & 9 & 7 \\
+C & 5 & 8 & 0 & 2 \\
+D & 8 & 4 & 6 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table P}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & 0 & 2 & 0 & 0 \\
-v2 & 0 & 0 & 0 & 1 & 1 \\
-v3 & 2 & 0 & 0 & 2 & 0 \\
-v4 & 0 & 0 & 2 & 0 & 0 \\
-v5 & 0 & \textcolor{blue}{3} & 0 & 1 & 0 \\
+A & 0 & 0 & 0 & 0 \\
+B & 0 & 0 & 1 & 1 \\
+C & 0 & 1 & 0 & 0 \\
+D & 2 & 0 & 0 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table D(4)}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & \textcolor{blue}{5} & \textcolor{blue}{12} & 4 & 7 \\
-v2 & 9 & 0 & 7 & 13 & 16 \\
-v3 & 14 & 5 & 0 & 18 & 14 \\
-v4 & 8 & 1 & 8 & 0 & 15 \\
-v5 & 2 & 7 & 2 & 6 & 0 \\
+A & 0 & 3 & 5 & 3 \\
+B & 4 & 0 & 9 & 7 \\
+C & 5 & \textcolor{blue}{6} & 0 & 2 \\
+D & 8 & 4 & 6 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
 \begin{frame}{Table P}
     \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
+        \begin{tabular}{c|cccc}
+         & A & B & C & D \\
 \hline
-v1 & 0 & \textcolor{blue}{4} & \textcolor{blue}{4} & 0 & 0 \\
-v2 & 0 & 0 & 0 & 1 & 1 \\
-v3 & 2 & 0 & 0 & 2 & 0 \\
-v4 & 0 & 0 & 2 & 0 & 0 \\
-v5 & 0 & 3 & 0 & 1 & 0 \\
+A & 0 & 0 & 0 & 0 \\
+B & 0 & 0 & 1 & 1 \\
+C & 0 & \textcolor{blue}{4} & 0 & 0 \\
+D & 2 & 0 & 0 & 0 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
-\begin{frame}{Table D(5)}
-    \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
-\hline
-v1 & 0 & 5 & \textcolor{blue}{9} & 4 & 7 \\
-v2 & 9 & 0 & 7 & 13 & 16 \\
-v3 & 14 & 5 & 0 & 18 & 14 \\
-v4 & 8 & 1 & 8 & 0 & 15 \\
-v5 & 2 & 7 & 2 & 6 & 0 \\
-        \end{tabular}
-    \end{center}
-\end{frame}
-
-\begin{frame}{Table P}
-    \begin{center}
-        \begin{tabular}{c|ccccc}
-         & v1 & v2 & v3 & v4 & v5 \\
-\hline
-v1 & 0 & 4 & \textcolor{blue}{5} & 0 & 0 \\
-v2 & 0 & 0 & 0 & 1 & 1 \\
-v3 & 2 & 0 & 0 & 2 & 0 \\
-v4 & 0 & 0 & 2 & 0 & 0 \\
-v5 & 0 & 3 & 0 & 1 & 0 \\
-        \end{tabular}
-    \end{center}
-\end{frame}
-
-\begin{frame}{Shortest Paths from v1}
+\begin{frame}{Shortest Paths from A}
 \begin{itemize}
-    \item to v2 (5): v1 $\rightarrow$  v4 $\rightarrow$ v2
-\item to v3 (9): v1 $\rightarrow$  v5 $\rightarrow$ v3
-\item to v4 (4): v1 $\rightarrow$ v4
-\item to v5 (7): v1 $\rightarrow$ v5
+    \item to B (3): A $\rightarrow$ B
+\item to C (5): A $\rightarrow$ C
+\item to D (3): A $\rightarrow$ D
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Shortest Paths from v2}
+\begin{frame}{Shortest Paths from B}
 \begin{itemize}
-    \item to v1 (9): v2 $\rightarrow$ v1
-\item to v3 (7): v2 $\rightarrow$ v3
-\item to v4 (13): v2 $\rightarrow$  v1 $\rightarrow$ v4
-\item to v5 (16): v2 $\rightarrow$  v1 $\rightarrow$ v5
+    \item to A (4): B $\rightarrow$ A
+\item to C (9): B $\rightarrow$  A $\rightarrow$ C
+\item to D (7): B $\rightarrow$  A $\rightarrow$ D
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Shortest Paths from v3}
+\begin{frame}{Shortest Paths from C}
 \begin{itemize}
-    \item to v1 (14): v3 $\rightarrow$  v2 $\rightarrow$ v1
-\item to v2 (5): v3 $\rightarrow$ v2
-\item to v4 (18): v3 $\rightarrow$  v2 $\rightarrow$  v1 $\rightarrow$ v4
-\item to v5 (14): v3 $\rightarrow$ v5
+    \item to A (5): C $\rightarrow$ A
+\item to B (6): C $\rightarrow$  D $\rightarrow$ B
+\item to D (2): C $\rightarrow$ D
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Shortest Paths from v4}
+\begin{frame}{Shortest Paths from D}
 \begin{itemize}
-    \item to v1 (8): v4 $\rightarrow$ v1
-\item to v2 (1): v4 $\rightarrow$ v2
-\item to v3 (8): v4 $\rightarrow$  v2 $\rightarrow$ v3
-\item to v5 (15): v4 $\rightarrow$ v5
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Shortest Paths from v5}
-\begin{itemize}
-    \item to v1 (2): v5 $\rightarrow$ v1
-\item to v2 (7): v5 $\rightarrow$  v3 $\rightarrow$ v2
-\item to v3 (2): v5 $\rightarrow$ v3
-\item to v4 (6): v5 $\rightarrow$  v1 $\rightarrow$ v4
+    \item to A (8): D $\rightarrow$  B $\rightarrow$ A
+\item to B (4): D $\rightarrow$ B
+\item to C (6): D $\rightarrow$ C
 \end{itemize}
 \end{frame}
 

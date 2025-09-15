@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 
+FILE *output_file;
 GtkWidget *main_window;
 GtkWidget *main_stack;
 GtkWidget *capacity_spin;
@@ -75,7 +76,7 @@ void knapsack()
 
 GtkWidget *create_object_widget(int object_id)
 {
-	GtkBuilder *builder = gtk_builder_new_from_file("objectSetupWidget.glade");
+	GtkBuilder *builder = gtk_builder_new_from_file("Knapsack/objectSetupWidget.glade");
 	GtkWidget *elem = GTK_WIDGET(gtk_builder_get_object(builder, "objectSetupWidget"));
 	g_object_ref(elem);
 
@@ -123,14 +124,65 @@ void print_table()
 	{
 		for (int j = 0; j < objects_amount; j++)
 		{
-			printf("%d / %d  |  ", table[j][i].value, table[j][i].amount);
+			g_print("%d / %d  |  ", table[j][i].value, table[j][i].amount);
 		}
-		printf("\n");
+		g_print("\n");
 	}
+}
+
+void setup_latex()
+{
+	fprintf(output_file,
+			"\\documentclass[12pt,a4paper]{article}\n"
+			"\\usepackage{geometry}\n"
+			"\\geometry{margin=1in}\n"
+			"\n"
+			"\\begin{document}\n"
+			"\\begin{titlepage}\n"
+			"    \\centering\n"
+			"    \\vspace*{3cm}\n"
+			"    {\\Huge \\textbf{Instituto Tecnológico de Costa Rica}} \\\\[2cm]\n"
+			"    {\\LARGE \\textbf{Knapsack Problem}} \\\\[3cm]\n"
+			"    {\\Large Members:} \\\\[0.5cm]\n"
+			"    {\\large Adrián Zamora Chavarría \\\\ Daniel Romero Murillo} \\\\[2cm]\n"
+			"    {\\large Date: \\today}\n"
+			"    \\vfill\n"
+			"\\end{titlepage}\n");
+}
+
+void print_knapsack_latex()
+{
+	fprintf(output_file, "\\newpage\n");
+	fprintf(output_file, "\\section*{Data Table}\n");
+	fprintf(output_file, "\\begin{tabular}{|c|");
+	for (int i = 0; i < objects_amount; i++)
+		fprintf(output_file, "c|");
+	fprintf(output_file, "}\n");
+	fprintf(output_file, "\\hline\n");
+	for (int i = 0; i < objects_amount; i++)
+		fprintf(output_file, "&%s", objects[i].name);
+	fprintf(output_file, "\\\\\n\\hline\n");
+	for (int i = 0; i <= capacity; i++)
+	{
+		fprintf(output_file, "%d ", i);
+		for (int j = 0; j < objects_amount; j++)
+		{
+			fprintf(output_file, "& %d/%d ", table[j][i].value, table[j][i].amount);
+		}
+		fprintf(output_file, "\\\\\n");
+	}
+	fprintf(output_file, "\\hline\n");
+	fprintf(output_file, "\\end{tabular}\n");
 }
 
 void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 {
+	output_file = fopen("Knapsack/output.tex", "w");
+	if (output_file == NULL)
+	{
+		g_print("Failed to open LaTeX file");
+		return;
+	}
 	table = malloc(objects_amount * sizeof(TableItem *));
 	objects = malloc(objects_amount * sizeof(Object));
 	for (int i = 0; i < objects_amount; i++)
@@ -142,38 +194,28 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 		obj.amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(object_widgets[i].available_spin));
 		objects[i] = obj;
 	}
+
 	knapsack();
-	print_table();
+	setup_latex();
+	print_knapsack_latex();
+	fprintf(output_file, "\\end{document}");
+	fclose(output_file);
+
+	for (int i = 0; i < objects_amount; i++)
+		free(table[i]);
+	free(table);
+	free(objects);
+
+	system("pdflatex Knapsack/output.tex");
+	system("evince --presentation output.pdf &");
 }
 
 int main(int argc, char *argv[])
 {
-	// Object water;
-	// water.name = "Water";
-	// water.value = 11;
-	// water.cost = 4;
-	// water.amount = 10;
-
-	// Object socks;
-	// socks.name = "Socks";
-	// socks.value = 7;
-	// socks.cost = 3;
-	// socks.amount = 10;
-
-	// Object cookies;
-	// cookies.name = "Cookies";
-	// cookies.value = 12;
-	// cookies.cost = 5;
-	// cookies.amount = 10;
-
-	// objects[0] = water;
-	// objects[1] = socks;
-	// objects[2] = cookies;
-
 	gtk_init(&argc, &argv);
 
-	// GtkBuilder *builder = gtk_builder_new_from_file("Knapsack/knapsack.glade"); //Si se abre desde el menu
-	GtkBuilder *builder = gtk_builder_new_from_file("knapsack.glade"); // Si se abre SIN en menu
+	GtkBuilder *builder = gtk_builder_new_from_file("Knapsack/knapsack.glade"); // Si se abre desde el menu
+	// GtkBuilder *builder = gtk_builder_new_from_file("knapsack.glade"); // Si se abre SIN en menu
 
 	main_window = GTK_WIDGET(gtk_builder_get_object(builder, "hWindow"));
 

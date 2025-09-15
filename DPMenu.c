@@ -12,6 +12,10 @@ void on_Floyd_clicked(GtkButton *button, gpointer user_data) {
     system("./Floyd/floyd.exe &");
 }
 
+void on_Knapsack_clicked(GtkButton *button, gpointer user_data) {
+    system("./Knapsack/knapsack.exe &");
+}
+
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
