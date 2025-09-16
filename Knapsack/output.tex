@@ -1,5 +1,6 @@
 \documentclass[12pt,a4paper]{article}
 \usepackage[table]{xcolor}
+\usepackage{graphicx}
 \usepackage{geometry}
 \geometry{margin=1in}
 
@@ -26,35 +27,36 @@
 \hspace*{1cm}$0 \leq x_2 \leq 1$\\
 \hspace*{1cm}$0 \leq x_3 \leq 1$\\
 \hspace*{1cm}$0 \leq x_4 \leq 1$\\
-\hspace*{1cm}$0 \leq x_5 \leq 0$\\
+\hspace*{1cm}$0 \leq x_5 \leq 1$\\
 \hspace*{1cm}$0 \leq x_6 \leq 1$\\
 \hspace*{1cm}$0 \leq x_7 \leq 1$\\
 \newpage
 \section*{Data Table}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
-&A&B&C&D&E&F&G\\
+&A&B&V&D&E&F&J\\
 \hline
 0 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{red!30} 0/$x_2=0$ & \cellcolor{red!30} 0/$x_3=0$ & \cellcolor{red!30} 0/$x_4=0$ & \cellcolor{red!30} 0/$x_5=0$ & \cellcolor{red!30} 0/$x_6=0$ \\
 1 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{red!30} 0/$x_2=0$ & \cellcolor{red!30} 0/$x_3=0$ & \cellcolor{red!30} 0/$x_4=0$ & \cellcolor{red!30} 0/$x_5=0$ & \cellcolor{red!30} 0/$x_6=0$ \\
 2 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{green!30} 5/$x_2=1$ & \cellcolor{red!30} 5/$x_3=0$ & \cellcolor{red!30} 5/$x_4=0$ & \cellcolor{red!30} 5/$x_5=0$ & \cellcolor{red!30} 5/$x_6=0$ \\
 3 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{red!30} 7/$x_1=0$ & \cellcolor{red!30} 7/$x_2=0$ & \cellcolor{red!30} 7/$x_3=0$ & \cellcolor{red!30} 7/$x_4=0$ & \cellcolor{red!30} 7/$x_5=0$ & \cellcolor{red!30} 7/$x_6=0$ \\
 4 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 9/$x_1=1$ & \cellcolor{red!30} 9/$x_2=0$ & \cellcolor{red!30} 9/$x_3=0$ & \cellcolor{red!30} 9/$x_4=0$ & \cellcolor{red!30} 9/$x_5=0$ & \cellcolor{red!30} 9/$x_6=0$ \\
-5 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 9/$x_1=1$ & \cellcolor{green!30} 12/$x_2=1$ & \cellcolor{red!30} 12/$x_3=0$ & \cellcolor{red!30} 12/$x_4=0$ & \cellcolor{red!30} 12/$x_5=0$ & \cellcolor{red!30} 12/$x_6=0$ \\
+5 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 9/$x_1=1$ & \cellcolor{green!30} 12/$x_2=1$ & \cellcolor{red!30} 12/$x_3=0$ & \cellcolor{red!30} 12/$x_4=0$ & \cellcolor{red!30} 12/$x_5=0$ & \cellcolor{orange!30} 12/$x_6=1-0$ \\
 6 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 9/$x_1=1$ & \cellcolor{green!30} 14/$x_2=1$ & \cellcolor{red!30} 14/$x_3=0$ & \cellcolor{red!30} 14/$x_4=0$ & \cellcolor{red!30} 14/$x_5=0$ & \cellcolor{red!30} 14/$x_6=0$ \\
 7 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{red!30} 16/$x_2=0$ & \cellcolor{red!30} 16/$x_3=0$ & \cellcolor{red!30} 16/$x_4=0$ & \cellcolor{red!30} 16/$x_5=0$ & \cellcolor{green!30} 17/$x_6=1$ \\
 8 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{red!30} 16/$x_2=0$ & \cellcolor{green!30} 17/$x_3=1$ & \cellcolor{red!30} 17/$x_4=0$ & \cellcolor{green!30} 18/$x_5=1$ & \cellcolor{green!30} 19/$x_6=1$ \\
-9 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{red!30} 21/$x_3=0$ & \cellcolor{red!30} 21/$x_4=0$ & \cellcolor{red!30} 21/$x_5=0$ & \cellcolor{red!30} 21/$x_6=0$ \\
-10 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{red!30} 21/$x_3=0$ & \cellcolor{red!30} 21/$x_4=0$ & \cellcolor{green!30} 22/$x_5=1$ & \cellcolor{green!30} 24/$x_6=1$ \\
+9 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{red!30} 21/$x_3=0$ & \cellcolor{red!30} 21/$x_4=0$ & \cellcolor{red!30} 21/$x_5=0$ & \cellcolor{orange!30} 21/$x_6=1-0$ \\
+10 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{orange!30} 21/$x_3=1-0$ & \cellcolor{orange!30} 21/$x_4=1-0$ & \cellcolor{green!30} 22/$x_5=1$ & \cellcolor{green!30} 24/$x_6=1$ \\
 11 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 24/$x_3=1$ & \cellcolor{red!30} 24/$x_4=0$ & \cellcolor{red!30} 24/$x_5=0$ & \cellcolor{green!30} 26/$x_6=1$ \\
-12 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 26/$x_3=1$ & \cellcolor{red!30} 26/$x_4=0$ & \cellcolor{green!30} 27/$x_5=1$ & \cellcolor{green!30} 28/$x_6=1$ \\
-13 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 28/$x_3=1$ & \cellcolor{red!30} 28/$x_4=0$ & \cellcolor{red!30} 28/$x_5=0$ & \cellcolor{green!30} 30/$x_6=1$ \\
-14 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 28/$x_3=1$ & \cellcolor{red!30} 28/$x_4=0$ & \cellcolor{green!30} 30/$x_5=1$ & \cellcolor{green!30} 33/$x_6=1$ \\
+12 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 26/$x_3=1$ & \cellcolor{orange!30} 26/$x_4=1-0$ & \cellcolor{green!30} 27/$x_5=1$ & \cellcolor{green!30} 28/$x_6=1$ \\
+13 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 28/$x_3=1$ & \cellcolor{orange!30} 28/$x_4=1-0$ & \cellcolor{red!30} 28/$x_5=0$ & \cellcolor{green!30} 30/$x_6=1$ \\
+14 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 28/$x_3=1$ & \cellcolor{green!30} 30/$x_4=1$ & \cellcolor{orange!30} 30/$x_5=1-0$ & \cellcolor{green!30} 33/$x_6=1$ \\
 15 & \cellcolor{green!30} 7/$x_0=1$ & \cellcolor{green!30} 16/$x_1=1$ & \cellcolor{green!30} 21/$x_2=1$ & \cellcolor{green!30} 33/$x_3=1$ & \cellcolor{red!30} 33/$x_4=0$ & \cellcolor{red!30} 33/$x_5=0$ & \cellcolor{green!30} 34/$x_6=1$ \\
 \hline
 \end{tabular}
+}
 \newpage\section*{Optimal Solution}
-Z = 34\\
 $x_7$ = 1\\
 $x_6$ = 1\\
 $x_5$ = 0\\

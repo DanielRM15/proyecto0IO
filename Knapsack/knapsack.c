@@ -74,9 +74,15 @@ void knapsack()
 				}
 				else if (newval == val)
 				{
-					take_amount = Q;
+					if (Q > 0)
+						take_amount = Q;
 				}
 				Q++;
+			}
+			if (take_amount == -1)
+			{
+				take_amount = take_amount2;
+				take_amount2 = -1;
 			}
 			TableItem table_item;
 			table_item.value = val;
@@ -136,6 +142,7 @@ void setup_latex()
 	fprintf(output_file,
 			"\\documentclass[12pt,a4paper]{article}\n"
 			"\\usepackage[table]{xcolor}\n"
+			"\\usepackage{graphicx}\n"
 			"\\usepackage{geometry}\n"
 			"\\geometry{margin=1in}\n"
 			"\n"
@@ -193,6 +200,7 @@ void print_knapsack_latex()
 {
 	fprintf(output_file, "\\newpage\n");
 	fprintf(output_file, "\\section*{Data Table}\n");
+	fprintf(output_file, "\\resizebox{\\textwidth}{!}{%%\n");
 	fprintf(output_file, "\\begin{tabular}{|c|");
 	for (int i = 0; i < objects_amount; i++)
 		fprintf(output_file, "c|");
@@ -206,15 +214,14 @@ void print_knapsack_latex()
 		fprintf(output_file, "%d ", i);
 		for (int j = 0; j < objects_amount; j++)
 		{
-			if (table[j][i].amount == -1)
-				fprintf(output_file, "& \\cellcolor{red!30} ");
-			else if (table[j][i].amount2 == -1)
+			if (table[j][i].amount2 != -1)
+				fprintf(output_file, "& \\cellcolor{orange!30} ");
+			else if (table[j][i].amount > 0)
 				fprintf(output_file, "& \\cellcolor{green!30} ");
 			else
-				fprintf(output_file, "& \\cellcolor{orange!30} ");
+				fprintf(output_file, "& \\cellcolor{red!30} ");
 			fprintf(output_file, "%d/", table[j][i].value);
-			fprintf(output_file, "$x_%d=%d$ ", j, table[j][i].amount);
-			if (table[j][i].amount == -1)
+			if (table[j][i].amount == 0)
 				fprintf(output_file, "$x_%d=%d$ ", j, 0);
 			else if (table[j][i].amount2 == -1)
 				fprintf(output_file, "$x_%d=%d$ ", j, table[j][i].amount);
@@ -224,7 +231,7 @@ void print_knapsack_latex()
 		fprintf(output_file, "\\\\\n");
 	}
 	fprintf(output_file, "\\hline\n");
-	fprintf(output_file, "\\end{tabular}\n");
+	fprintf(output_file, "\\end{tabular}\n}\n");
 }
 
 void print_solution_latex()
