@@ -13,11 +13,13 @@ GtkWidget *objects_container;
 
 int capacity = 0;
 int objects_amount = 0;
+char knapsack_type = 'B'; //'B': bounded; 'U': unbounded; 'O': 1/0
 
 typedef struct
 {
-	int value;	// Value gained at position ij
-	int amount; // Amount of object i taken
+	int value;	 // Value gained at position ij
+	int amount;	 // Amount of object i taken
+	int amount2; // Amount2 if there is a tie
 } TableItem;
 TableItem **table;
 
@@ -54,21 +56,32 @@ void knapsack()
 				val = 0;
 
 			int Q = 0;
-			int take_amount = 0;
-			while (Q * objects[i].cost <= j)
+			int take_amount = -1;
+			int take_amount2 = 0;
+			while (Q * objects[i].cost <= j && Q <= objects[i].amount)
 			{
 				int newval;
 				if (i > 0)
 					newval = Q * objects[i].value + table[i - 1][j - Q * objects[i].cost].value;
 				else
 					newval = Q * objects[i].value;
-				take_amount = newval > val ? Q : take_amount;
-				val = newval > val ? newval : val;
+
+				if (newval > val)
+				{
+					take_amount = Q;
+					val = newval;
+					take_amount2 = -1;
+				}
+				else if (newval == val)
+				{
+					take_amount = Q;
+				}
 				Q++;
 			}
 			TableItem table_item;
 			table_item.value = val;
 			table_item.amount = take_amount;
+			table_item.amount2 = take_amount2;
 			table[i][j] = table_item;
 		}
 	}
@@ -118,22 +131,11 @@ void on_continueBtn_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_show_all(objects_container);
 }
 
-void print_table()
-{
-	for (int i = 0; i < capacity + 1; i++)
-	{
-		for (int j = 0; j < objects_amount; j++)
-		{
-			g_print("%d / %d  |  ", table[j][i].value, table[j][i].amount);
-		}
-		g_print("\n");
-	}
-}
-
 void setup_latex()
 {
 	fprintf(output_file,
 			"\\documentclass[12pt,a4paper]{article}\n"
+			"\\usepackage[table]{xcolor}\n"
 			"\\usepackage{geometry}\n"
 			"\\geometry{margin=1in}\n"
 			"\n"
@@ -148,6 +150,43 @@ void setup_latex()
 			"    {\\large Date: \\today}\n"
 			"    \\vfill\n"
 			"\\end{titlepage}\n");
+}
+
+void print_problem()
+{
+	fprintf(output_file, "\\newpage\n");
+	fprintf(output_file, "\\section*{Problem}\n");
+	fprintf(output_file, "\\noindent\n");
+	fprintf(output_file, "\\textbf{Maximize} \\\\\n");
+	fprintf(output_file, "\\hspace*{1cm}$Z = ");
+	for (int i = 0; i < objects_amount; i++)
+	{
+		if (objects[i].value > 1)
+			fprintf(output_file, "%d", objects[i].value);
+		fprintf(output_file, "x_%d ", i + 1);
+		if (i < objects_amount - 1)
+			fprintf(output_file, "+ ");
+	}
+	fprintf(output_file, "$ \\\\[1em]\n");
+	fprintf(output_file, "\\noindent\n");
+	fprintf(output_file, "\\textbf{Subject to} \\\\\n");
+	fprintf(output_file, "\\hspace*{1cm}$");
+	for (int i = 0; i < objects_amount; i++)
+	{
+		if (objects[i].cost > 1)
+			fprintf(output_file, "%d", objects[i].cost);
+		fprintf(output_file, "x_%d ", i + 1);
+		if (i < objects_amount - 1)
+			fprintf(output_file, "+ ");
+	}
+	fprintf(output_file, "\\leq %d$\\\\\n", capacity);
+	for (int i = 0; i < objects_amount; i++)
+	{
+		fprintf(output_file, "\\hspace*{1cm}$0 \\leq x_%d ", i + 1);
+		if (knapsack_type != 'U')
+			fprintf(output_file, "\\leq %d", objects[i].amount);
+		fprintf(output_file, "$\\\\\n");
+	}
 }
 
 void print_knapsack_latex()
@@ -167,12 +206,38 @@ void print_knapsack_latex()
 		fprintf(output_file, "%d ", i);
 		for (int j = 0; j < objects_amount; j++)
 		{
-			fprintf(output_file, "& %d/%d ", table[j][i].value, table[j][i].amount);
+			if (table[j][i].amount == -1)
+				fprintf(output_file, "& \\cellcolor{red!30} ");
+			else if (table[j][i].amount2 == -1)
+				fprintf(output_file, "& \\cellcolor{green!30} ");
+			else
+				fprintf(output_file, "& \\cellcolor{orange!30} ");
+			fprintf(output_file, "%d/", table[j][i].value);
+			fprintf(output_file, "$x_%d=%d$ ", j, table[j][i].amount);
+			if (table[j][i].amount == -1)
+				fprintf(output_file, "$x_%d=%d$ ", j, 0);
+			else if (table[j][i].amount2 == -1)
+				fprintf(output_file, "$x_%d=%d$ ", j, table[j][i].amount);
+			else
+				fprintf(output_file, "$x_%d=%d-%d$ ", j, table[j][i].amount, table[j][i].amount2);
 		}
 		fprintf(output_file, "\\\\\n");
 	}
 	fprintf(output_file, "\\hline\n");
 	fprintf(output_file, "\\end{tabular}\n");
+}
+
+void print_solution_latex()
+{
+	fprintf(output_file, "\\newpage");
+	fprintf(output_file, "\\section*{Optimal Solution}\n");
+	fprintf(output_file, "Z = %d\\\\\n", table[objects_amount - 1][capacity].value);
+	int consumed = 0;
+	for (int i = 0; i < objects_amount; i++)
+	{
+		fprintf(output_file, "$x_%d$ = %d\\\\\n", objects_amount - i, table[objects_amount - 1 - i][capacity - consumed].amount);
+		consumed += table[objects_amount - 1 - i][capacity - consumed].amount * objects[objects_amount - 1 - i].cost;
+	}
 }
 
 void on_runBtn_clicked(GtkButton *button, gpointer user_data)
@@ -197,7 +262,9 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 
 	knapsack();
 	setup_latex();
+	print_problem();
 	print_knapsack_latex();
+	print_solution_latex();
 	fprintf(output_file, "\\end{document}");
 	fclose(output_file);
 
