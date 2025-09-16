@@ -137,6 +137,43 @@ void on_continueBtn_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_show_all(objects_container);
 }
 
+void on_radio_toggled(GtkToggleButton *toggle_button, gpointer user_data)
+{
+	const gchar *name = gtk_buildable_get_name(GTK_BUILDABLE(toggle_button));
+
+	if (gtk_toggle_button_get_active(toggle_button))
+	{
+		if (g_strcmp0(name, "bounded_radio") == 0)
+		{
+			for (int i = 0; i < objects_amount; i++)
+			{
+				gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[i].available_spin), 1);
+				gtk_widget_set_sensitive(object_widgets[i].available_spin, TRUE);
+				knapsack_type = 'B';
+			}
+		}
+		else if (g_strcmp0(name, "unbounded_radio") == 0)
+		{
+			for (int i = 0; i < objects_amount; i++)
+			{
+				gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[i].available_spin), 999);
+				gtk_entry_set_text(GTK_ENTRY(object_widgets[i].available_spin), "∞");
+				gtk_widget_set_sensitive(object_widgets[i].available_spin, FALSE);
+				knapsack_type = 'U';
+			}
+		}
+		else if (g_strcmp0(name, "onezero_radio") == 0)
+		{
+			for (int i = 0; i < objects_amount; i++)
+			{
+				gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[i].available_spin), 1);
+				gtk_widget_set_sensitive(object_widgets[i].available_spin, FALSE);
+				knapsack_type = 'O';
+			}
+		}
+	}
+}
+
 void setup_latex()
 {
 	fprintf(output_file,
