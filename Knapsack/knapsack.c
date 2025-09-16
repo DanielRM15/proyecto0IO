@@ -234,16 +234,43 @@ void print_knapsack_latex()
 	fprintf(output_file, "\\end{tabular}\n}\n");
 }
 
-void print_solution_latex()
+void print_solution_latex(int track_table[objects_amount][capacity + 1])
 {
 	fprintf(output_file, "\\newpage");
 	fprintf(output_file, "\\section*{Optimal Solution}\n");
 	fprintf(output_file, "Z = %d\\\\\n", table[objects_amount - 1][capacity].value);
+
+	int last_decision_i = -1;
+	int last_decision_j = -1;
 	int consumed = 0;
 	for (int i = 0; i < objects_amount; i++)
 	{
-		fprintf(output_file, "$x_%d$ = %d\\\\\n", objects_amount - i, table[objects_amount - 1 - i][capacity - consumed].amount);
-		consumed += table[objects_amount - 1 - i][capacity - consumed].amount * objects[objects_amount - 1 - i].cost;
+		TableItem cell = table[objects_amount - 1 - i][capacity - consumed];
+		if (cell.amount2 != -1)
+		{
+			if (track_table[objects_amount - 1 - i][capacity - consumed] == 0)
+			{
+				last_decision_i = objects_amount - 1 - i;
+				last_decision_j = capacity - consumed;
+				fprintf(output_file, "$x_%d$ = %d\\\\\n", objects_amount - i, cell.amount2);
+				consumed += cell.amount2 * objects[objects_amount - 1 - i].cost;
+			}
+			else
+			{
+				fprintf(output_file, "$x_%d$ = %d\\\\\n", objects_amount - i, cell.amount);
+				consumed += cell.amount * objects[objects_amount - 1 - i].cost;
+			}
+		}
+		else
+		{
+			fprintf(output_file, "$x_%d$ = %d\\\\\n", objects_amount - i, cell.amount);
+			consumed += cell.amount * objects[objects_amount - 1 - i].cost;
+		}
+	}
+	if (last_decision_i != -1)
+	{
+		track_table[last_decision_i][last_decision_j] = 1;
+		print_solution_latex(track_table);
 	}
 }
 
@@ -271,7 +298,9 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 	setup_latex();
 	print_problem();
 	print_knapsack_latex();
-	print_solution_latex();
+	int track_table[objects_amount][capacity + 1];
+	memset(track_table, 0, sizeof track_table);
+	print_solution_latex(track_table);
 	fprintf(output_file, "\\end{document}");
 	fclose(output_file);
 
