@@ -1,5 +1,8 @@
 \documentclass[12pt,a4paper]{article}
 \usepackage[table]{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{longtable}
 \usepackage{graphicx}
 \usepackage{geometry}
 \geometry{margin=1in}
@@ -9,6 +12,7 @@
     \centering
     \vspace*{3cm}
     {\Huge \textbf{Instituto Tecnológico de Costa Rica}} \\[2cm]
+    {\Large \textbf{Operations Research - Semester II}} \\[2cm]
     {\LARGE \textbf{Knapsack Problem}} \\[3cm]
     {\Large Members:} \\[0.5cm]
     {\large Adrián Zamora Chavarría \\ Daniel Romero Murillo} \\[2cm]
@@ -16,45 +20,153 @@
     \vfill
 \end{titlepage}
 \newpage
+\section*{The Knapsack Problem}
+The \textbf{Knapsack Problem} is a classic optimization problem in computer science and operations research. It consists of having a set of items, each with a weight and a value. We also have a knapsack with limited capacity. The goal is to select a subset of items so that the total weight does not exceed the capacity of the knapsack, while the total value gained is maximized.
+\[
+\max(Z) = \sum x_i v_i  \
+\]
+\[\text{subject to} \quad \sum x_i c_i \leq C
+\]
+\begin{itemize}
+\item Z: gained value (we want to maximize it)
+\item C: knapsack capacity
+\item $v_i$: value of item i
+\item $c_i$: cost of item i
+\item $x_i$: amount of item i taken
+\end{itemize}
+\subsection*{0/1 Knapsack Problem}
+In the \textbf{0/1 Knapsack Problem}, items exist only once. We can either take it or leave it. We cannot take multiple of the same item.
+\subsection*{Bounded Knapsack Problem}
+In the \textbf{Bounded Knapsack Problem}, we can take multiple copies of each item. The items are limited and we have to choose how many to take of each.
+\subsection*{Unbounded Knapsack Problem}
+In the \textbf{Unbounded Knapsack Problem}, there are infinite copies of each item. We can take as much as we please of any item.
+\subsection*{Knapsack algorithm}
+\begin{itemize}
+\item We have $k_i$ copies of item i
+\item We can include up to Q copies of item i
+\end{itemize}
+\[
+Q = \min(k_j, \left\lfloor \frac{i}{c_j} \right\rfloor)
+\]
+\newpage
+\begin{itemize}
+\item Now we fill up a $C \times k_i$ sized table like this:
+\end{itemize}
+\begin{align*}
+\text{Table}[i][j] = \max \Big(&
+\text{Table}[i][j-1], \\
+&1 \cdot v_i + \text{Table}[i-1 \cdot c_i][j-1], \\
+&2 \cdot v_i + \text{Table}[i-2 \cdot c_i][j-1], \\
+&\dots, \\
+&Q \cdot v_i + \text{Table}[i-Q \cdot c_i][j-1]
+\Big)
+\end{align*}
+\begin{itemize}
+\item In each cell we save the maximum possible value, and the amount of the item we should take to get it.
+\end{itemize}
+\newpage
 \section*{Problem}
+\begin{large}
 \noindent
 \textbf{Maximize} \\
-\hspace*{1cm}$Z = 4x_1 + 5x_2 + 2x_3 $ \\[1em]
+\hspace*{1cm}$Z = 5x_1 + 8x_2 + 6x_3 + 16x_4 + 16x_5 + 15x_6 + 3x_7 + 12x_8 + 50x_9 + 27x_10 $ \\[1em]
 \noindent
 \textbf{Subject to} \\
-\hspace*{1cm}$2x_1 + 3x_2 + x_3 \leq 10$\\
+\hspace*{1cm}$3x_1 + 4x_2 + 4x_3 + 12x_4 + 8x_5 + 12x_6 + 2x_7 + 6x_8 + 38x_9 + 20x_10 \leq 20$\\
 \hspace*{1cm}$0 \leq x_1 $\\
 \hspace*{1cm}$0 \leq x_2 $\\
 \hspace*{1cm}$0 \leq x_3 $\\
+\hspace*{1cm}$0 \leq x_4 $\\
+\hspace*{1cm}$0 \leq x_5 $\\
+\hspace*{1cm}$0 \leq x_6 $\\
+\hspace*{1cm}$0 \leq x_7 $\\
+\hspace*{1cm}$0 \leq x_8 $\\
+\hspace*{1cm}$0 \leq x_9 $\\
+\hspace*{1cm}$0 \leq x_10 $\\
+\end{large}
 \newpage
 \section*{Data Table}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{|c|c|c|c|}
+\begin{longtable}{|c|c|c|c|c|c|c|c|c|c|c|}
 \hline
-&A&B&C\\
+&DASD&Basdg&Tsdsd&Hasd&Kaygsd&Iahsbd&ajaYYs&Adsd&AJgsd&Iohsd\\
 \hline
-0 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{red!30} 0/$x_2=0$ \\
-1 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{green!30} 2/$x_2=1$ \\
-2 & \cellcolor{green!30} 4/$x_0=1$ & \cellcolor{red!30} 4/$x_1=0$ & \cellcolor{orange!30} 4/$x_2=2-0$ \\
-3 & \cellcolor{green!30} 4/$x_0=1$ & \cellcolor{green!30} 5/$x_1=1$ & \cellcolor{green!30} 6/$x_2=3$ \\
-4 & \cellcolor{green!30} 8/$x_0=2$ & \cellcolor{red!30} 8/$x_1=0$ & \cellcolor{orange!30} 8/$x_2=4-0$ \\
-5 & \cellcolor{green!30} 8/$x_0=2$ & \cellcolor{green!30} 9/$x_1=1$ & \cellcolor{green!30} 10/$x_2=5$ \\
-6 & \cellcolor{green!30} 12/$x_0=3$ & \cellcolor{red!30} 12/$x_1=0$ & \cellcolor{orange!30} 12/$x_2=6-0$ \\
-7 & \cellcolor{green!30} 12/$x_0=3$ & \cellcolor{green!30} 13/$x_1=1$ & \cellcolor{green!30} 14/$x_2=7$ \\
-8 & \cellcolor{green!30} 16/$x_0=4$ & \cellcolor{red!30} 16/$x_1=0$ & \cellcolor{orange!30} 16/$x_2=8-0$ \\
-9 & \cellcolor{green!30} 16/$x_0=4$ & \cellcolor{green!30} 17/$x_1=1$ & \cellcolor{green!30} 18/$x_2=9$ \\
-10 & \cellcolor{green!30} 20/$x_0=5$ & \cellcolor{red!30} 20/$x_1=0$ & \cellcolor{orange!30} 20/$x_2=10-0$ \\
+0 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{red!30} 0/$x_2=0$ & \cellcolor{red!30} 0/$x_3=0$ & \cellcolor{red!30} 0/$x_4=0$ & \cellcolor{red!30} 0/$x_5=0$ & \cellcolor{red!30} 0/$x_6=0$ & \cellcolor{red!30} 0/$x_7=0$ & \cellcolor{red!30} 0/$x_8=0$ & \cellcolor{red!30} 0/$x_9=0$ \\
+1 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{red!30} 0/$x_2=0$ & \cellcolor{red!30} 0/$x_3=0$ & \cellcolor{red!30} 0/$x_4=0$ & \cellcolor{red!30} 0/$x_5=0$ & \cellcolor{red!30} 0/$x_6=0$ & \cellcolor{red!30} 0/$x_7=0$ & \cellcolor{red!30} 0/$x_8=0$ & \cellcolor{red!30} 0/$x_9=0$ \\
+2 & \cellcolor{red!30} 0/$x_0=0$ & \cellcolor{red!30} 0/$x_1=0$ & \cellcolor{red!30} 0/$x_2=0$ & \cellcolor{red!30} 0/$x_3=0$ & \cellcolor{red!30} 0/$x_4=0$ & \cellcolor{red!30} 0/$x_5=0$ & \cellcolor{green!30} 3/$x_6=1$ & \cellcolor{red!30} 3/$x_7=0$ & \cellcolor{red!30} 3/$x_8=0$ & \cellcolor{red!30} 3/$x_9=0$ \\
+3 & \cellcolor{green!30} 5/$x_0=1$ & \cellcolor{red!30} 5/$x_1=0$ & \cellcolor{red!30} 5/$x_2=0$ & \cellcolor{red!30} 5/$x_3=0$ & \cellcolor{red!30} 5/$x_4=0$ & \cellcolor{red!30} 5/$x_5=0$ & \cellcolor{red!30} 5/$x_6=0$ & \cellcolor{red!30} 5/$x_7=0$ & \cellcolor{red!30} 5/$x_8=0$ & \cellcolor{red!30} 5/$x_9=0$ \\
+4 & \cellcolor{green!30} 5/$x_0=1$ & \cellcolor{green!30} 8/$x_1=1$ & \cellcolor{red!30} 8/$x_2=0$ & \cellcolor{red!30} 8/$x_3=0$ & \cellcolor{red!30} 8/$x_4=0$ & \cellcolor{red!30} 8/$x_5=0$ & \cellcolor{red!30} 8/$x_6=0$ & \cellcolor{red!30} 8/$x_7=0$ & \cellcolor{red!30} 8/$x_8=0$ & \cellcolor{red!30} 8/$x_9=0$ \\
+5 & \cellcolor{green!30} 5/$x_0=1$ & \cellcolor{green!30} 8/$x_1=1$ & \cellcolor{red!30} 8/$x_2=0$ & \cellcolor{red!30} 8/$x_3=0$ & \cellcolor{red!30} 8/$x_4=0$ & \cellcolor{red!30} 8/$x_5=0$ & \cellcolor{orange!30} 8/$x_6=1-0$ & \cellcolor{red!30} 8/$x_7=0$ & \cellcolor{red!30} 8/$x_8=0$ & \cellcolor{red!30} 8/$x_9=0$ \\
+6 & \cellcolor{green!30} 10/$x_0=2$ & \cellcolor{red!30} 10/$x_1=0$ & \cellcolor{red!30} 10/$x_2=0$ & \cellcolor{red!30} 10/$x_3=0$ & \cellcolor{red!30} 10/$x_4=0$ & \cellcolor{red!30} 10/$x_5=0$ & \cellcolor{green!30} 11/$x_6=1$ & \cellcolor{green!30} 12/$x_7=1$ & \cellcolor{red!30} 12/$x_8=0$ & \cellcolor{red!30} 12/$x_9=0$ \\
+7 & \cellcolor{green!30} 10/$x_0=2$ & \cellcolor{green!30} 13/$x_1=1$ & \cellcolor{red!30} 13/$x_2=0$ & \cellcolor{red!30} 13/$x_3=0$ & \cellcolor{red!30} 13/$x_4=0$ & \cellcolor{red!30} 13/$x_5=0$ & \cellcolor{red!30} 13/$x_6=0$ & \cellcolor{red!30} 13/$x_7=0$ & \cellcolor{red!30} 13/$x_8=0$ & \cellcolor{red!30} 13/$x_9=0$ \\
+8 & \cellcolor{green!30} 10/$x_0=2$ & \cellcolor{green!30} 16/$x_1=2$ & \cellcolor{red!30} 16/$x_2=0$ & \cellcolor{red!30} 16/$x_3=0$ & \cellcolor{orange!30} 16/$x_4=1-0$ & \cellcolor{red!30} 16/$x_5=0$ & \cellcolor{red!30} 16/$x_6=0$ & \cellcolor{red!30} 16/$x_7=0$ & \cellcolor{red!30} 16/$x_8=0$ & \cellcolor{red!30} 16/$x_9=0$ \\
+9 & \cellcolor{green!30} 15/$x_0=3$ & \cellcolor{green!30} 16/$x_1=2$ & \cellcolor{red!30} 16/$x_2=0$ & \cellcolor{red!30} 16/$x_3=0$ & \cellcolor{orange!30} 16/$x_4=1-0$ & \cellcolor{red!30} 16/$x_5=0$ & \cellcolor{orange!30} 16/$x_6=1-0$ & \cellcolor{green!30} 17/$x_7=1$ & \cellcolor{red!30} 17/$x_8=0$ & \cellcolor{red!30} 17/$x_9=0$ \\
+10 & \cellcolor{green!30} 15/$x_0=3$ & \cellcolor{green!30} 18/$x_1=1$ & \cellcolor{red!30} 18/$x_2=0$ & \cellcolor{red!30} 18/$x_3=0$ & \cellcolor{red!30} 18/$x_4=0$ & \cellcolor{red!30} 18/$x_5=0$ & \cellcolor{green!30} 19/$x_6=1$ & \cellcolor{green!30} 20/$x_7=1$ & \cellcolor{red!30} 20/$x_8=0$ & \cellcolor{red!30} 20/$x_9=0$ \\
+11 & \cellcolor{green!30} 15/$x_0=3$ & \cellcolor{green!30} 21/$x_1=2$ & \cellcolor{red!30} 21/$x_2=0$ & \cellcolor{red!30} 21/$x_3=0$ & \cellcolor{orange!30} 21/$x_4=1-0$ & \cellcolor{red!30} 21/$x_5=0$ & \cellcolor{red!30} 21/$x_6=0$ & \cellcolor{red!30} 21/$x_7=0$ & \cellcolor{red!30} 21/$x_8=0$ & \cellcolor{red!30} 21/$x_9=0$ \\
+12 & \cellcolor{green!30} 20/$x_0=4$ & \cellcolor{green!30} 24/$x_1=3$ & \cellcolor{red!30} 24/$x_2=0$ & \cellcolor{red!30} 24/$x_3=0$ & \cellcolor{orange!30} 24/$x_4=1-0$ & \cellcolor{red!30} 24/$x_5=0$ & \cellcolor{red!30} 24/$x_6=0$ & \cellcolor{orange!30} 24/$x_7=2-0$ & \cellcolor{red!30} 24/$x_8=0$ & \cellcolor{red!30} 24/$x_9=0$ \\
+13 & \cellcolor{green!30} 20/$x_0=4$ & \cellcolor{green!30} 24/$x_1=3$ & \cellcolor{red!30} 24/$x_2=0$ & \cellcolor{red!30} 24/$x_3=0$ & \cellcolor{orange!30} 24/$x_4=1-0$ & \cellcolor{red!30} 24/$x_5=0$ & \cellcolor{orange!30} 24/$x_6=1-0$ & \cellcolor{green!30} 25/$x_7=1$ & \cellcolor{red!30} 25/$x_8=0$ & \cellcolor{red!30} 25/$x_9=0$ \\
+14 & \cellcolor{green!30} 20/$x_0=4$ & \cellcolor{green!30} 26/$x_1=2$ & \cellcolor{red!30} 26/$x_2=0$ & \cellcolor{red!30} 26/$x_3=0$ & \cellcolor{orange!30} 26/$x_4=1-0$ & \cellcolor{red!30} 26/$x_5=0$ & \cellcolor{green!30} 27/$x_6=1$ & \cellcolor{green!30} 28/$x_7=1$ & \cellcolor{red!30} 28/$x_8=0$ & \cellcolor{red!30} 28/$x_9=0$ \\
+15 & \cellcolor{green!30} 25/$x_0=5$ & \cellcolor{green!30} 29/$x_1=3$ & \cellcolor{red!30} 29/$x_2=0$ & \cellcolor{red!30} 29/$x_3=0$ & \cellcolor{orange!30} 29/$x_4=1-0$ & \cellcolor{red!30} 29/$x_5=0$ & \cellcolor{red!30} 29/$x_6=0$ & \cellcolor{orange!30} 29/$x_7=2-0$ & \cellcolor{red!30} 29/$x_8=0$ & \cellcolor{red!30} 29/$x_9=0$ \\
+16 & \cellcolor{green!30} 25/$x_0=5$ & \cellcolor{green!30} 32/$x_1=4$ & \cellcolor{red!30} 32/$x_2=0$ & \cellcolor{red!30} 32/$x_3=0$ & \cellcolor{orange!30} 32/$x_4=2-0$ & \cellcolor{red!30} 32/$x_5=0$ & \cellcolor{red!30} 32/$x_6=0$ & \cellcolor{orange!30} 32/$x_7=2-0$ & \cellcolor{red!30} 32/$x_8=0$ & \cellcolor{red!30} 32/$x_9=0$ \\
+17 & \cellcolor{green!30} 25/$x_0=5$ & \cellcolor{green!30} 32/$x_1=4$ & \cellcolor{red!30} 32/$x_2=0$ & \cellcolor{red!30} 32/$x_3=0$ & \cellcolor{orange!30} 32/$x_4=2-0$ & \cellcolor{red!30} 32/$x_5=0$ & \cellcolor{orange!30} 32/$x_6=1-0$ & \cellcolor{green!30} 33/$x_7=1$ & \cellcolor{red!30} 33/$x_8=0$ & \cellcolor{red!30} 33/$x_9=0$ \\
+18 & \cellcolor{green!30} 30/$x_0=6$ & \cellcolor{green!30} 34/$x_1=3$ & \cellcolor{red!30} 34/$x_2=0$ & \cellcolor{red!30} 34/$x_3=0$ & \cellcolor{orange!30} 34/$x_4=1-0$ & \cellcolor{red!30} 34/$x_5=0$ & \cellcolor{green!30} 35/$x_6=1$ & \cellcolor{green!30} 36/$x_7=3$ & \cellcolor{red!30} 36/$x_8=0$ & \cellcolor{red!30} 36/$x_9=0$ \\
+19 & \cellcolor{green!30} 30/$x_0=6$ & \cellcolor{green!30} 37/$x_1=4$ & \cellcolor{red!30} 37/$x_2=0$ & \cellcolor{red!30} 37/$x_3=0$ & \cellcolor{orange!30} 37/$x_4=2-0$ & \cellcolor{red!30} 37/$x_5=0$ & \cellcolor{red!30} 37/$x_6=0$ & \cellcolor{orange!30} 37/$x_7=2-0$ & \cellcolor{red!30} 37/$x_8=0$ & \cellcolor{red!30} 37/$x_9=0$ \\
+20 & \cellcolor{green!30} 30/$x_0=6$ & \cellcolor{green!30} 40/$x_1=5$ & \cellcolor{red!30} 40/$x_2=0$ & \cellcolor{red!30} 40/$x_3=0$ & \cellcolor{orange!30} 40/$x_4=2-0$ & \cellcolor{red!30} 40/$x_5=0$ & \cellcolor{red!30} 40/$x_6=0$ & \cellcolor{orange!30} 40/$x_7=2-0$ & \cellcolor{red!30} 40/$x_8=0$ & \cellcolor{red!30} 40/$x_9=0$ \\
 \hline
-\end{tabular}
-}
+\end{longtable}
 \newpage\section*{Optimal Solution}
-Z = 20\\
+\begin{large}
+Z = 40\\
+$x_10$ = 0\\
+$x_9$ = 0\\
+$x_8$ = 0\\
+$x_7$ = 0\\
+$x_6$ = 0\\
+$x_5$ = 0\\
+$x_4$ = 0\\
+$x_3$ = 0\\
+$x_2$ = 5\\
+$x_1$ = 0\\
+\end{large}
+\newpage\section*{Optimal Solution}
+\begin{large}
+Z = 40\\
+$x_10$ = 0\\
+$x_9$ = 0\\
+$x_8$ = 0\\
+$x_7$ = 0\\
+$x_6$ = 0\\
+$x_5$ = 2\\
+$x_4$ = 0\\
+$x_3$ = 0\\
+$x_2$ = 1\\
+$x_1$ = 0\\
+\end{large}
+\newpage\section*{Optimal Solution}
+\begin{large}
+Z = 40\\
+$x_10$ = 0\\
+$x_9$ = 0\\
+$x_8$ = 2\\
+$x_7$ = 0\\
+$x_6$ = 0\\
+$x_5$ = 0\\
+$x_4$ = 0\\
+$x_3$ = 0\\
+$x_2$ = 2\\
+$x_1$ = 0\\
+\end{large}
+\newpage\section*{Optimal Solution}
+\begin{large}
+Z = 40\\
+$x_10$ = 0\\
+$x_9$ = 0\\
+$x_8$ = 2\\
+$x_7$ = 0\\
+$x_6$ = 0\\
+$x_5$ = 1\\
+$x_4$ = 0\\
 $x_3$ = 0\\
 $x_2$ = 0\\
-$x_1$ = 5\\
-\newpage\section*{Optimal Solution}
-Z = 20\\
-$x_3$ = 10\\
-$x_2$ = 0\\
 $x_1$ = 0\\
+\end{large}
 \end{document}

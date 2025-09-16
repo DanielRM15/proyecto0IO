@@ -179,6 +179,10 @@ void setup_latex()
 	fprintf(output_file,
 			"\\documentclass[12pt,a4paper]{article}\n"
 			"\\usepackage[table]{xcolor}\n"
+			"\\usepackage{amsmath}\n"
+			"\\usepackage{amssymb}\n"
+			"\\usepackage{longtable}\n"
+			"\\usepackage{pdflscape}\n"
 			"\\usepackage{graphicx}\n"
 			"\\usepackage{geometry}\n"
 			"\\geometry{margin=1in}\n"
@@ -188,18 +192,65 @@ void setup_latex()
 			"    \\centering\n"
 			"    \\vspace*{3cm}\n"
 			"    {\\Huge \\textbf{Instituto Tecnológico de Costa Rica}} \\\\[2cm]\n"
+			"    {\\Large \\textbf{Operations Research - Semester II}} \\\\[2cm]\n"
 			"    {\\LARGE \\textbf{Knapsack Problem}} \\\\[3cm]\n"
 			"    {\\Large Members:} \\\\[0.5cm]\n"
 			"    {\\large Adrián Zamora Chavarría \\\\ Daniel Romero Murillo} \\\\[2cm]\n"
 			"    {\\large Date: \\today}\n"
 			"    \\vfill\n"
-			"\\end{titlepage}\n");
+			"\\end{titlepage}\n"
+			"\\newpage\n"
+			"\\section*{The Knapsack Problem}\n"
+			"The \\textbf{Knapsack Problem} is a classic optimization problem in computer science and operations research. It consists of having a set of items, each with a weight and a value. We also have a knapsack with limited capacity. The goal is to select a subset of items so that the total weight does not exceed the capacity of the knapsack, while the total value gained is maximized.\n"
+			"\\[\n"
+			"\\max(Z) = \\sum x_i v_i  \\\n"
+			"\\]\n"
+			"\\[\\text{subject to} \\quad \\sum x_i c_i \\leq C\n"
+			"\\]\n"
+			"\\begin{itemize}\n"
+			"\\item Z: gained value (we want to maximize it)\n"
+			"\\item C: knapsack capacity\n"
+			"\\item $v_i$: value of item i\n"
+			"\\item $c_i$: cost of item i\n"
+			"\\item $x_i$: amount of item i taken\n"
+			"\\end{itemize}\n"
+			"\\subsection*{0/1 Knapsack Problem}\n"
+			"In the \\textbf{0/1 Knapsack Problem}, items exist only once. We can either take it or leave it. We cannot take multiple of the same item.\n"
+			"\\subsection*{Bounded Knapsack Problem}\n"
+			"In the \\textbf{Bounded Knapsack Problem}, we can take multiple copies of each item. The items are limited and we have to choose how many to take of each.\n"
+			"\\subsection*{Unbounded Knapsack Problem}\n"
+			"In the \\textbf{Unbounded Knapsack Problem}, there are infinite copies of each item. We can take as much as we please of any item.\n"
+			"\\subsection*{Knapsack algorithm}\n"
+			"\\begin{itemize}\n"
+			"\\item We have $k_i$ copies of item i\n"
+			"\\item We can include up to Q copies of item i\n"
+			"\\end{itemize}\n"
+			"\\[\n"
+			"Q = \\min(k_j, \\left\\lfloor \\frac{i}{c_j} \\right\\rfloor)\n"
+			"\\]\n"
+			"\\newpage\n"
+			"\\begin{itemize}\n"
+			"\\item Now we fill up a $C \\times k_i$ sized table like this:\n"
+			"\\end{itemize}\n"
+			"\\begin{align*}\n"
+			"\\text{Table}[i][j] = \\max \\Big(&\n"
+			"\\text{Table}[i][j-1], \\\\\n"
+			"&1 \\cdot v_i + \\text{Table}[i-1 \\cdot c_i][j-1], \\\\\n"
+			"&2 \\cdot v_i + \\text{Table}[i-2 \\cdot c_i][j-1], \\\\\n"
+			"&\\dots, \\\\\n"
+			"&Q \\cdot v_i + \\text{Table}[i-Q \\cdot c_i][j-1]\n"
+			"\\Big)\n"
+			"\\end{align*}\n"
+			"\\begin{itemize}\n"
+			"\\item In each cell we save the maximum possible value, and the amount of the item we should take to get it.\n"
+			"\\end{itemize}\n");
 }
 
 void print_problem()
 {
 	fprintf(output_file, "\\newpage\n");
 	fprintf(output_file, "\\section*{Problem}\n");
+	fprintf(output_file, "\\begin{large}\n");
 	fprintf(output_file, "\\noindent\n");
 	fprintf(output_file, "\\textbf{Maximize} \\\\\n");
 	fprintf(output_file, "\\hspace*{1cm}$Z = ");
@@ -231,14 +282,18 @@ void print_problem()
 			fprintf(output_file, "\\leq %d", objects[i].amount);
 		fprintf(output_file, "$\\\\\n");
 	}
+	fprintf(output_file, "\\end{large}\n");
 }
 
 void print_knapsack_latex()
 {
-	fprintf(output_file, "\\newpage\n");
-	fprintf(output_file, "\\section*{Data Table}\n");
-	fprintf(output_file, "\\resizebox{\\textwidth}{!}{%%\n");
-	fprintf(output_file, "\\begin{tabular}{|c|");
+	if (objects_amount > 7)
+		fprintf(output_file, "\\begin{landscape}\n");
+	else
+		fprintf(output_file, "\\newpage\n");
+	fprintf(output_file, "\\section*{Table}\n");
+	// fprintf(output_file, "\\resizebox{\\textwidth}{!}{%%\n");
+	fprintf(output_file, "\\begin{longtable}{|c|");
 	for (int i = 0; i < objects_amount; i++)
 		fprintf(output_file, "c|");
 	fprintf(output_file, "}\n");
@@ -268,13 +323,16 @@ void print_knapsack_latex()
 		fprintf(output_file, "\\\\\n");
 	}
 	fprintf(output_file, "\\hline\n");
-	fprintf(output_file, "\\end{tabular}\n}\n");
+	fprintf(output_file, "\\end{longtable}\n");
+	if (objects_amount > 7)
+		fprintf(output_file, "\\end{landscape}\n");
 }
 
 void print_solution_latex(int track_table[objects_amount][capacity + 1])
 {
 	fprintf(output_file, "\\newpage");
 	fprintf(output_file, "\\section*{Optimal Solution}\n");
+	fprintf(output_file, "\\begin{large}\n");
 	fprintf(output_file, "Z = %d\\\\\n", table[objects_amount - 1][capacity].value);
 
 	int last_decision_i = -1;
@@ -304,6 +362,8 @@ void print_solution_latex(int track_table[objects_amount][capacity + 1])
 			consumed += cell.amount * objects[objects_amount - 1 - i].cost;
 		}
 	}
+	fprintf(output_file, "\\end{large}\n");
+
 	if (last_decision_i != -1)
 	{
 		track_table[last_decision_i][last_decision_j] = 1;
