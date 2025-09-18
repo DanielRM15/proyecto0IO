@@ -34,7 +34,7 @@ typedef struct
 	GtkWidget *available_spin;
 	GtkWidget *main_widget;
 } ObjectWidgetData;
-ObjectWidgetData object_widgets[10];
+ObjectWidgetData object_widgets[12];
 
 typedef struct
 {
@@ -273,7 +273,7 @@ void print_problem()
 	{
 		if (objects[i].cost > 1)
 			fprintf(output_file, "%d", objects[i].cost);
-		fprintf(output_file, "x_%d ", i + 1);
+		fprintf(output_file, "x_{%d} ", i + 1);
 		if (i < objects_amount - 1)
 			fprintf(output_file, "+ ");
 	}
@@ -288,26 +288,26 @@ void print_problem()
 	fprintf(output_file, "\\end{large}\n");
 }
 
-void print_knapsack_latex()
+void print_knapsack_latex(int start_j, int end_j)
 {
-	if (objects_amount > 7)
-		fprintf(output_file, "\\begin{landscape}\n");
-	else
-		fprintf(output_file, "\\newpage\n");
+	// if (objects_amount > 7)
+	// 	fprintf(output_file, "\\begin{landscape}\n");
+	// else
+	fprintf(output_file, "\\newpage\n");
 	fprintf(output_file, "\\section*{Table}\n");
 	// fprintf(output_file, "\\resizebox{\\textwidth}{!}{%%\n");
 	fprintf(output_file, "\\begin{longtable}{|c|");
-	for (int i = 0; i < objects_amount; i++)
+	for (int i = start_j; i < end_j; i++)
 		fprintf(output_file, "c|");
 	fprintf(output_file, "}\n");
 	fprintf(output_file, "\\hline\n");
-	for (int i = 0; i < objects_amount; i++)
+	for (int i = start_j; i < end_j; i++)
 		fprintf(output_file, "&%s", objects[i].name);
 	fprintf(output_file, "\\\\\n\\hline\n");
 	for (int i = 0; i <= capacity; i++)
 	{
 		fprintf(output_file, "%d ", i);
-		for (int j = 0; j < objects_amount; j++)
+		for (int j = start_j; j < end_j; j++)
 		{
 			if (table[j][i].amount2 != -1)
 				fprintf(output_file, "& \\cellcolor{orange!30} ");
@@ -327,8 +327,8 @@ void print_knapsack_latex()
 	}
 	fprintf(output_file, "\\hline\n");
 	fprintf(output_file, "\\end{longtable}\n");
-	if (objects_amount > 7)
-		fprintf(output_file, "\\end{landscape}\n");
+	// if (objects_amount > 7)
+	// 	fprintf(output_file, "\\end{landscape}\n");
 }
 
 void print_solution_latex(int track_table[objects_amount][capacity + 1])
@@ -397,7 +397,13 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 	knapsack();
 	setup_latex();
 	print_problem();
-	print_knapsack_latex();
+	int x = 0;
+	while (x < objects_amount)
+	{
+		int until = x + 5;
+		print_knapsack_latex(x, until > objects_amount ? objects_amount : until);
+		x = until;
+	}
 	int track_table[objects_amount][capacity + 1];
 	memset(track_table, 0, sizeof track_table);
 	print_solution_latex(track_table);
@@ -415,217 +421,217 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 
 void save_data_to_file(const char *filename)
 {
-    FILE *file = fopen(filename, "w");
-    if (file == NULL)
-    {
-        return;
-    }
+	FILE *file = fopen(filename, "w");
+	if (file == NULL)
+	{
+		return;
+	}
 
-    // Save metadata
-    fprintf(file, "KNAPSACK_DATA_V1\n");
-    fprintf(file, "capacity=%d\n", capacity);
-    fprintf(file, "objects_amount=%d\n", objects_amount);
-    fprintf(file, "knapsack_type=%c\n", knapsack_type);
-    
-    // Save objects data
-    for (int i = 0; i < objects_amount; i++)
-    {
-        const char *name = gtk_entry_get_text(GTK_ENTRY(object_widgets[i].name_txt));
-        int value = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(object_widgets[i].value_spin));
-        int cost = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(object_widgets[i].cost_spin));
-        int amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(object_widgets[i].available_spin));
-        
-        fprintf(file, "object_%d_name=%s\n", i, name);
-        fprintf(file, "object_%d_value=%d\n", i, value);
-        fprintf(file, "object_%d_cost=%d\n", i, cost);
-        fprintf(file, "object_%d_amount=%d\n", i, amount);
-    }
-    
-    fclose(file);
+	// Save metadata
+	fprintf(file, "KNAPSACK_DATA_V1\n");
+	fprintf(file, "capacity=%d\n", capacity);
+	fprintf(file, "objects_amount=%d\n", objects_amount);
+	fprintf(file, "knapsack_type=%c\n", knapsack_type);
+
+	// Save objects data
+	for (int i = 0; i < objects_amount; i++)
+	{
+		const char *name = gtk_entry_get_text(GTK_ENTRY(object_widgets[i].name_txt));
+		int value = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(object_widgets[i].value_spin));
+		int cost = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(object_widgets[i].cost_spin));
+		int amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(object_widgets[i].available_spin));
+
+		fprintf(file, "object_%d_name=%s\n", i, name);
+		fprintf(file, "object_%d_value=%d\n", i, value);
+		fprintf(file, "object_%d_cost=%d\n", i, cost);
+		fprintf(file, "object_%d_amount=%d\n", i, amount);
+	}
+
+	fclose(file);
 }
 
 void load_data_from_file(const char *filename)
 {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL)
-    {
-        return;
-    }
+	FILE *file = fopen(filename, "r");
+	if (file == NULL)
+	{
+		return;
+	}
 
-    char line[256];
-    char header[256];
-    
-    // Read and verify header
-    if (fgets(header, sizeof(header), file) == NULL || 
-        strncmp(header, "KNAPSACK_DATA_V1", 16) != 0)
-    {
-        fclose(file);
-        return;
-    }
-    
-    // Clear existing objects first
-    GList *children = gtk_container_get_children(GTK_CONTAINER(objects_container));
-    for (GList *iter = children; iter != NULL; iter = g_list_next(iter))
-    {
-        gtk_widget_destroy(GTK_WIDGET(iter->data));
-    }
-    g_list_free(children);
-    
-    // Initialize object_widgets array
-    for (int i = 0; i < 10; i++)
-    {
-        object_widgets[i].main_widget = NULL;
-        object_widgets[i].name_txt = NULL;
-        object_widgets[i].value_spin = NULL;
-        object_widgets[i].cost_spin = NULL;
-        object_widgets[i].available_spin = NULL;
-    }
-    
-    // Read metadata
-    while (fgets(line, sizeof(line), file))
-    {
-        // Remove newline
-        line[strcspn(line, "\n")] = 0;
-        
-        if (strncmp(line, "capacity=", 9) == 0)
-        {
-            capacity = atoi(line + 9);
-            gtk_spin_button_set_value(GTK_SPIN_BUTTON(capacity_spin), capacity);
-        }
-        else if (strncmp(line, "objects_amount=", 15) == 0)
-        {
-            objects_amount = atoi(line + 15);
-            gtk_spin_button_set_value(GTK_SPIN_BUTTON(objects_spin), objects_amount);
-        }
-        else if (strncmp(line, "knapsack_type=", 14) == 0)
-        {
-            knapsack_type = line[14];
-        }
-        else if (strncmp(line, "object_", 7) == 0)
-        {
-            // Parse object data
-            int obj_id;
-            char property[50];
-            char value[256];
-            
-            if (sscanf(line, "object_%d_%49[^=]=%255s", &obj_id, property, value) == 3)
-            {
-                // Ensure we have created the object widget
-                if (obj_id < objects_amount && object_widgets[obj_id].main_widget == NULL)
-                {
-                    GtkWidget *object_widget = create_object_widget(obj_id);
-                    gtk_box_pack_start(GTK_BOX(objects_container), object_widget, FALSE, FALSE, 5);
-                }
-                
-                if (obj_id < objects_amount)
-                {
-                    if (strcmp(property, "name") == 0)
-                    {
-                        gtk_entry_set_text(GTK_ENTRY(object_widgets[obj_id].name_txt), value);
-                    }
-                    else if (strcmp(property, "value") == 0)
-                    {
-                        gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[obj_id].value_spin), atoi(value));
-                    }
-                    else if (strcmp(property, "cost") == 0)
-                    {
-                        gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[obj_id].cost_spin), atoi(value));
-                    }
-                    else if (strcmp(property, "amount") == 0)
-                    {
-                        gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[obj_id].available_spin), atoi(value));
-                    }
-                }
-            }
-        }
-    }
-    
-    fclose(file);
-    
-    // Switch to the objects page and update radio buttons
-    if (objects_amount > 0)
-    {
-        gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page1");
-        gtk_widget_show_all(objects_container);
-        
-        // Update radio button selection based on knapsack_type
-        if (knapsack_type == 'B')
-        {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(bounded_radio), TRUE);
-        }
-        else if (knapsack_type == 'U')
-        {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(unbounded_radio), TRUE);
-        }
-        else if (knapsack_type == 'O')
-        {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(onezero_radio), TRUE);
-        }
-    }
+	char line[256];
+	char header[256];
+
+	// Read and verify header
+	if (fgets(header, sizeof(header), file) == NULL ||
+		strncmp(header, "KNAPSACK_DATA_V1", 16) != 0)
+	{
+		fclose(file);
+		return;
+	}
+
+	// Clear existing objects first
+	GList *children = gtk_container_get_children(GTK_CONTAINER(objects_container));
+	for (GList *iter = children; iter != NULL; iter = g_list_next(iter))
+	{
+		gtk_widget_destroy(GTK_WIDGET(iter->data));
+	}
+	g_list_free(children);
+
+	// Initialize object_widgets array
+	for (int i = 0; i < 10; i++)
+	{
+		object_widgets[i].main_widget = NULL;
+		object_widgets[i].name_txt = NULL;
+		object_widgets[i].value_spin = NULL;
+		object_widgets[i].cost_spin = NULL;
+		object_widgets[i].available_spin = NULL;
+	}
+
+	// Read metadata
+	while (fgets(line, sizeof(line), file))
+	{
+		// Remove newline
+		line[strcspn(line, "\n")] = 0;
+
+		if (strncmp(line, "capacity=", 9) == 0)
+		{
+			capacity = atoi(line + 9);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(capacity_spin), capacity);
+		}
+		else if (strncmp(line, "objects_amount=", 15) == 0)
+		{
+			objects_amount = atoi(line + 15);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(objects_spin), objects_amount);
+		}
+		else if (strncmp(line, "knapsack_type=", 14) == 0)
+		{
+			knapsack_type = line[14];
+		}
+		else if (strncmp(line, "object_", 7) == 0)
+		{
+			// Parse object data
+			int obj_id;
+			char property[50];
+			char value[256];
+
+			if (sscanf(line, "object_%d_%49[^=]=%255s", &obj_id, property, value) == 3)
+			{
+				// Ensure we have created the object widget
+				if (obj_id < objects_amount && object_widgets[obj_id].main_widget == NULL)
+				{
+					GtkWidget *object_widget = create_object_widget(obj_id);
+					gtk_box_pack_start(GTK_BOX(objects_container), object_widget, FALSE, FALSE, 5);
+				}
+
+				if (obj_id < objects_amount)
+				{
+					if (strcmp(property, "name") == 0)
+					{
+						gtk_entry_set_text(GTK_ENTRY(object_widgets[obj_id].name_txt), value);
+					}
+					else if (strcmp(property, "value") == 0)
+					{
+						gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[obj_id].value_spin), atoi(value));
+					}
+					else if (strcmp(property, "cost") == 0)
+					{
+						gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[obj_id].cost_spin), atoi(value));
+					}
+					else if (strcmp(property, "amount") == 0)
+					{
+						gtk_spin_button_set_value(GTK_SPIN_BUTTON(object_widgets[obj_id].available_spin), atoi(value));
+					}
+				}
+			}
+		}
+	}
+
+	fclose(file);
+
+	// Switch to the objects page and update radio buttons
+	if (objects_amount > 0)
+	{
+		gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page1");
+		gtk_widget_show_all(objects_container);
+
+		// Update radio button selection based on knapsack_type
+		if (knapsack_type == 'B')
+		{
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(bounded_radio), TRUE);
+		}
+		else if (knapsack_type == 'U')
+		{
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(unbounded_radio), TRUE);
+		}
+		else if (knapsack_type == 'O')
+		{
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(onezero_radio), TRUE);
+		}
+	}
 }
 
 void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
 {
-    GtkWidget *dialog = gtk_file_chooser_dialog_new("Save Knapsack Data",
-                                                    GTK_WINDOW(main_window),
-                                                    GTK_FILE_CHOOSER_ACTION_SAVE,
-                                                    "_Cancel", GTK_RESPONSE_CANCEL,
-                                                    "_Save", GTK_RESPONSE_ACCEPT,
-                                                    NULL);
-    
-    // Set default filename
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "knapsack_data.ksp");
-    
-    // Add file filter
-    GtkFileFilter *filter = gtk_file_filter_new();
-    gtk_file_filter_set_name(filter, "Knapsack Files (*.ksp)");
-    gtk_file_filter_add_pattern(filter, "*.ksp");
-    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-    
-    gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-    if (result == GTK_RESPONSE_ACCEPT)
-    {
-        char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-        
-        // Add .ksp extension if not present
-        if (!g_str_has_suffix(filename, ".ksp"))
-        {
-            char *new_filename = g_strdup_printf("%s.ksp", filename);
-            g_free(filename);
-            filename = new_filename;
-        }
-        
-        save_data_to_file(filename);
-        g_free(filename);
-    }
-    
-    gtk_widget_destroy(dialog);
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Save Knapsack Data",
+													GTK_WINDOW(main_window),
+													GTK_FILE_CHOOSER_ACTION_SAVE,
+													"_Cancel", GTK_RESPONSE_CANCEL,
+													"_Save", GTK_RESPONSE_ACCEPT,
+													NULL);
+
+	// Set default filename
+	gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "knapsack_data.ksp");
+
+	// Add file filter
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "Knapsack Files (*.ksp)");
+	gtk_file_filter_add_pattern(filter, "*.ksp");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (result == GTK_RESPONSE_ACCEPT)
+	{
+		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+		// Add .ksp extension if not present
+		if (!g_str_has_suffix(filename, ".ksp"))
+		{
+			char *new_filename = g_strdup_printf("%s.ksp", filename);
+			g_free(filename);
+			filename = new_filename;
+		}
+
+		save_data_to_file(filename);
+		g_free(filename);
+	}
+
+	gtk_widget_destroy(dialog);
 }
 
 void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
 {
-    GtkWidget *dialog = gtk_file_chooser_dialog_new("Load Knapsack Data",
-                                                    GTK_WINDOW(main_window),
-                                                    GTK_FILE_CHOOSER_ACTION_OPEN,
-                                                    "_Cancel", GTK_RESPONSE_CANCEL,
-                                                    "_Load", GTK_RESPONSE_ACCEPT,
-                                                    NULL);
-    
-    // Add file filter
-    GtkFileFilter *filter = gtk_file_filter_new();
-    gtk_file_filter_set_name(filter, "Knapsack Files (*.ksp)");
-    gtk_file_filter_add_pattern(filter, "*.ksp");
-    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-    
-    gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-    if (result == GTK_RESPONSE_ACCEPT)
-    {
-        char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-        load_data_from_file(filename);
-        g_free(filename);
-    }
-    
-    gtk_widget_destroy(dialog);
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Load Knapsack Data",
+													GTK_WINDOW(main_window),
+													GTK_FILE_CHOOSER_ACTION_OPEN,
+													"_Cancel", GTK_RESPONSE_CANCEL,
+													"_Load", GTK_RESPONSE_ACCEPT,
+													NULL);
+
+	// Add file filter
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "Knapsack Files (*.ksp)");
+	gtk_file_filter_add_pattern(filter, "*.ksp");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (result == GTK_RESPONSE_ACCEPT)
+	{
+		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		load_data_from_file(filename);
+		g_free(filename);
+	}
+
+	gtk_widget_destroy(dialog);
 }
 
 int main(int argc, char *argv[])
@@ -648,8 +654,8 @@ int main(int argc, char *argv[])
 	objects_container = GTK_WIDGET(gtk_builder_get_object(builder, "objectsContainer"));
 
 	bounded_radio = GTK_WIDGET(gtk_builder_get_object(builder, "bounded_radio"));
-    unbounded_radio = GTK_WIDGET(gtk_builder_get_object(builder, "unbounded_radio"));
-    onezero_radio = GTK_WIDGET(gtk_builder_get_object(builder, "onezero_radio"));
+	unbounded_radio = GTK_WIDGET(gtk_builder_get_object(builder, "unbounded_radio"));
+	onezero_radio = GTK_WIDGET(gtk_builder_get_object(builder, "onezero_radio"));
 
 	gtk_widget_show_all(main_window);
 

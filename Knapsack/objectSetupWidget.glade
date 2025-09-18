@@ -74,6 +74,7 @@
             <property name="can-focus">True</property>
             <property name="margin-end">20</property>
             <property name="hexpand">True</property>
+            <property name="max-length">6</property>
           </object>
           <packing>
             <property name="expand">False</property>

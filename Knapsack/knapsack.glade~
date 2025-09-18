@@ -148,12 +148,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="loadBtn">
                     <property name="label" translatable="yes">Load</property>
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="receives-default">True</property>
                     <property name="margin-end">100</property>
+                    <signal name="clicked" handler="on_loadBtn_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -297,11 +298,12 @@
                 <property name="spacing">50</property>
                 <property name="homogeneous">True</property>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="saveBtn">
                     <property name="label" translatable="yes">Save</property>
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="receives-default">True</property>
+                    <signal name="clicked" handler="on_saveBtn_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
