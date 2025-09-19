@@ -1,0 +1,16 @@
+KNAPSACK_DATA_V1
+capacity=10
+objects_amount=3
+knapsack_type=U
+object_0_name=Agua
+object_0_value=11
+object_0_cost=4
+object_0_amount=999
+object_1_name=Medias
+object_1_value=7
+object_1_cost=3
+object_1_amount=999
+object_2_name=Galle.
+object_2_value=12
+object_2_cost=5
+object_2_amount=999

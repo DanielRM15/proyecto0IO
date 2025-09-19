@@ -261,7 +261,7 @@ void print_problem()
 	{
 		if (objects[i].value > 1)
 			fprintf(output_file, "%d", objects[i].value);
-		fprintf(output_file, "x_%d ", i + 1);
+		fprintf(output_file, "x_{%d} ", i + 1);
 		if (i < objects_amount - 1)
 			fprintf(output_file, "+ ");
 	}
@@ -280,7 +280,7 @@ void print_problem()
 	fprintf(output_file, "\\leq %d$\\\\\n", capacity);
 	for (int i = 0; i < objects_amount; i++)
 	{
-		fprintf(output_file, "\\hspace*{1cm}$0 \\leq x_%d ", i + 1);
+		fprintf(output_file, "\\hspace*{1cm}$0 \\leq x_{%d} ", i + 1);
 		if (knapsack_type != 'U')
 			fprintf(output_file, "\\leq %d", objects[i].amount);
 		fprintf(output_file, "$\\\\\n");
@@ -302,7 +302,7 @@ void print_knapsack_latex(int start_j, int end_j)
 	fprintf(output_file, "}\n");
 	fprintf(output_file, "\\hline\n");
 	for (int i = start_j; i < end_j; i++)
-		fprintf(output_file, "&%s", objects[i].name);
+		fprintf(output_file, "&%s ($x_{%d}$)", objects[i].name, i + 1);
 	fprintf(output_file, "\\\\\n\\hline\n");
 	for (int i = 0; i <= capacity; i++)
 	{
@@ -317,11 +317,11 @@ void print_knapsack_latex(int start_j, int end_j)
 				fprintf(output_file, "& \\cellcolor{red!30} ");
 			fprintf(output_file, "%d/", table[j][i].value);
 			if (table[j][i].amount == 0)
-				fprintf(output_file, "$x_%d=%d$ ", j, 0);
+				fprintf(output_file, "$x_{%d}=%d$ ", j + 1, 0);
 			else if (table[j][i].amount2 == -1)
-				fprintf(output_file, "$x_%d=%d$ ", j, table[j][i].amount);
+				fprintf(output_file, "$x_{%d}=%d$ ", j + 1, table[j][i].amount);
 			else
-				fprintf(output_file, "$x_%d=%d-%d$ ", j, table[j][i].amount, table[j][i].amount2);
+				fprintf(output_file, "$x_{%d}=%d-%d$ ", j + 1, table[j][i].amount, table[j][i].amount2);
 		}
 		fprintf(output_file, "\\\\\n");
 	}
