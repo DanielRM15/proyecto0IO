@@ -52,7 +52,7 @@
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
-            <property name="tooltip-text" translatable="yes">Dynamic Programming algorithm 2</property>
+            <property name="tooltip-text" translatable="yes">The knapsack problem is a combinatorial optimization problem in which, given a set of items each with a specific weight and value, the goal is to select a subset of items to maximize the total value without exceeding a fixed weight capacity of a knapsack.</property>
             <property name="margin-start">20</property>
             <property name="margin-end">20</property>
             <signal name="clicked" handler="on_Knapsack_clicked" swapped="no"/>

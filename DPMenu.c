@@ -16,6 +16,10 @@ void on_Knapsack_clicked(GtkButton *button, gpointer user_data) {
     system("./Knapsack/knapsack.exe &");
 }
 
+void on_equipos_clicked(GtkButton *button, gpointer user_data) {
+    system("./Equipos/equipos.exe &");
+}
+
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 

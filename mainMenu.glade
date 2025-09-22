@@ -65,14 +65,14 @@
         </child>
         <child>
           <object class="GtkButton" id="button2">
-            <property name="label" translatable="yes">TBA</property>
+            <property name="label" translatable="yes">Reemplazo de Equipos</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
             <property name="tooltip-text" translatable="yes">Dynamic Programming algorithm 3</property>
             <property name="margin-start">20</property>
             <property name="margin-end">20</property>
-            <signal name="clicked" handler="on_not_implemented" swapped="no"/>
+            <signal name="clicked" handler="on_equipos_clicked" swapped="no"/>
           </object>
           <packing>
             <property name="expand">False</property>
