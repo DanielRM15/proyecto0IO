@@ -33,6 +33,8 @@ GtkWidget **resale_entries;
 GtkWidget **profit_entries;
 GtkWidget **profit_checks;
 
+void on_profit_check_toggled(GtkToggleButton *toggle_button, gpointer user_data);
+
 void setup_latex()
 {
     fprintf(output_file,
@@ -44,6 +46,8 @@ void setup_latex()
             "\\usepackage{pdflscape}\n"
             "\\usepackage{graphicx}\n"
             "\\usepackage{geometry}\n"
+            "\\usepackage{tikz}\n"
+            "\\usetikzlibrary{arrows,positioning,shapes}\n"
             "\\geometry{margin=1in}\n"
             "\n"
             "\\begin{document}\n"
@@ -247,6 +251,35 @@ void generate_step_by_step_calculations()
     }
 }
 
+void generate_tikz_graph(int *plan, int plan_length) {
+    fprintf(output_file, "\\begin{center}\n");
+    fprintf(output_file, "\\begin{tikzpicture}[node distance=1.5cm, auto]\n");
+    fprintf(output_file, "\\tikzstyle{time} = [circle, draw]\n");
+    fprintf(output_file, "\\tikzstyle{arrow} = [thick,->]\n");
+
+    // Draw all nodes
+    for (int t = 0; t <= term; t++) {
+        if (t == 0) {
+            fprintf(output_file, "\\node[time] (t%d) {%d};\n", t, t);
+        } else {
+            fprintf(output_file, "\\node[time, right of=t%d] (t%d) {%d};\n", t-1, t, t);
+        }
+    }
+    
+    // Draw arrows for each equipment usage period
+    for (int i = 0; i < plan_length; i++) {
+        int buy_time = plan[2*i];
+        int sell_time = plan[2*i + 1];
+        
+        // Draw arc from buy_time to sell_time
+        fprintf(output_file, "\\draw[arrow] (t%d) to [bend left=30] (t%d);\n", 
+                buy_time, sell_time);
+    }
+    
+    fprintf(output_file, "\\end{tikzpicture}\n");
+    fprintf(output_file, "\\end{center}\n\n");
+}
+
 void generate_all_plans(int current_time, int *plan_number, int *current_plan, int plan_length)
 {
     if (current_time >= term)
@@ -260,6 +293,9 @@ void generate_all_plans(int current_time, int *plan_number, int *current_plan, i
                     current_plan[2 * i], current_plan[2 * i + 1]);
         }
         fprintf(output_file, "\n");
+        
+        generate_tikz_graph(current_plan, plan_length);
+        
         return;
     }
 
@@ -298,7 +334,7 @@ void generate_latex_report()
             "    \\item $t$: A given instant through the project term.\n"
             "    \\item $C_{tx}$: The cost of buying at instant $t$ and selling at $x$\n"
             "    \\begin{itemize}\n"
-            "        \\item Cost of new equipment + maintenance costs - sell price\n"
+            "        \\item Cost of new equipment + maintenance costs - sell price - profits\n"
             "    \\end{itemize}\n"
             "\\end{itemize}\n"
             "\n"
@@ -478,6 +514,259 @@ void generate_latex_report()
     fprintf(output_file, "\\end{itemize}\n\n");
 }
 
+void save_data_to_file()
+{
+    GtkWidget *dialog;
+    GtkFileChooser *chooser;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new("Save Equipment Data",
+                                         GTK_WINDOW(main_window),
+                                         action,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         "_Save",
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
+
+    chooser = GTK_FILE_CHOOSER(dialog);
+    
+    GtkFileFilter *filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "Equipment files (*.equip)");
+    gtk_file_filter_add_pattern(filter, "*.equip");
+    gtk_file_chooser_add_filter(chooser, filter);
+
+    GtkFileFilter *all_filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(all_filter, "All files");
+    gtk_file_filter_add_pattern(all_filter, "*");
+    gtk_file_chooser_add_filter(chooser, all_filter);
+
+    res = gtk_dialog_run(GTK_DIALOG(dialog));
+    
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *chosen_filename;
+        char *final_filename;
+        
+        chosen_filename = gtk_file_chooser_get_filename(chooser);
+        
+        // Check if filename already has .equip extension
+        if (!g_str_has_suffix(chosen_filename, ".equip"))
+        {
+            final_filename = g_strdup_printf("%s.equip", chosen_filename);
+            g_free(chosen_filename);
+        }
+        else
+        {
+            final_filename = chosen_filename;
+        }
+
+        FILE *file = fopen(final_filename, "w");
+        if (file == NULL)
+        {
+            g_free(final_filename);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        fprintf(file, "%d\n", init_equipment_cost);
+        fprintf(file, "%d\n", term);
+        fprintf(file, "%d\n", lifespan);
+
+        // Save maintenance costs, resale prices, and profits
+        for (int i = 0; i < lifespan; i++)
+        {
+            int maintenance = 0, resale = 0, profit = 0, has_profit = 0;
+            
+            if (maintenance_entries && maintenance_entries[i])
+            {
+                const char *maint_text = gtk_entry_get_text(GTK_ENTRY(maintenance_entries[i]));
+                maintenance = atoi(maint_text);
+            }
+            
+            if (resale_entries && resale_entries[i])
+            {
+                const char *resale_text = gtk_entry_get_text(GTK_ENTRY(resale_entries[i]));
+                resale = atoi(resale_text);
+            }
+            
+            if (profit_checks && profit_checks[i])
+            {
+                has_profit = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(profit_checks[i]));
+                if (has_profit && profit_entries && profit_entries[i])
+                {
+                    const char *profit_text = gtk_entry_get_text(GTK_ENTRY(profit_entries[i]));
+                    profit = atoi(profit_text);
+                }
+            }
+
+            fprintf(file, "%d %d %d %d\n", maintenance, resale, profit, has_profit);
+        }
+
+        fclose(file);
+        
+        g_free(final_filename);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+int load_data_from_file()
+{
+    GtkWidget *dialog;
+    GtkFileChooser *chooser;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new("Open Equipment Data",
+                                         GTK_WINDOW(main_window),
+                                         action,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         "_Open",
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
+
+    chooser = GTK_FILE_CHOOSER(dialog);
+
+    // Add file filters
+    GtkFileFilter *filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "Equipment files (*.equip)");
+    gtk_file_filter_add_pattern(filter, "*.equip");
+    gtk_file_chooser_add_filter(chooser, filter);
+
+    GtkFileFilter *all_filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(all_filter, "All files");
+    gtk_file_filter_add_pattern(all_filter, "*");
+    gtk_file_chooser_add_filter(chooser, all_filter);
+
+    res = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+        filename = gtk_file_chooser_get_filename(chooser);
+
+        FILE *file = fopen(filename, "r");
+        if (file == NULL)
+        {
+            g_free(filename);
+            gtk_widget_destroy(dialog);
+            return 0;
+        }
+
+        int loaded_cost, loaded_term, loaded_lifespan;
+        
+        if (fscanf(file, "%d", &loaded_cost) != 1 ||
+            fscanf(file, "%d", &loaded_term) != 1 ||
+            fscanf(file, "%d", &loaded_lifespan) != 1)
+        {
+            fclose(file);
+            g_free(filename);
+            gtk_widget_destroy(dialog);
+            return 0;
+        }
+
+        char cost_str[20];
+        snprintf(cost_str, sizeof(cost_str), "%d", loaded_cost);
+        gtk_entry_set_text(GTK_ENTRY(costEntry), cost_str);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(projectSpin), loaded_term);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(lifeSpin), loaded_lifespan);
+
+        // Update global variables
+        init_equipment_cost = loaded_cost;
+        term = loaded_term;
+        lifespan = loaded_lifespan;
+
+        // Recreate the equipment widgets
+        maintenance_entries = (GtkWidget **)malloc(lifespan * sizeof(GtkWidget *));
+        resale_entries = (GtkWidget **)malloc(lifespan * sizeof(GtkWidget *));
+        profit_entries = (GtkWidget **)malloc(lifespan * sizeof(GtkWidget *));
+        profit_checks = (GtkWidget **)malloc(lifespan * sizeof(GtkWidget *));
+
+        GList *children = gtk_container_get_children(GTK_CONTAINER(equipmentContainer));
+        for (GList *iter = children; iter != NULL; iter = g_list_next(iter))
+        {
+            gtk_widget_destroy(GTK_WIDGET(iter->data));
+        }
+        g_list_free(children);
+
+        for (int i = 1; i <= lifespan; i++)
+        {
+            GtkBuilder *temp_builder = gtk_builder_new_from_file("equipos.glade");
+            GtkWidget *cloned_widget = GTK_WIDGET(gtk_builder_get_object(temp_builder, "equipmentWidget"));
+
+            maintenance_entries[i - 1] = GTK_WIDGET(gtk_builder_get_object(temp_builder, "maintCostEntry"));
+            resale_entries[i - 1] = GTK_WIDGET(gtk_builder_get_object(temp_builder, "resaleEntry"));
+            profit_entries[i - 1] = GTK_WIDGET(gtk_builder_get_object(temp_builder, "profitEntry"));
+            profit_checks[i - 1] = GTK_WIDGET(gtk_builder_get_object(temp_builder, "profitCheck"));
+
+            gtk_widget_set_sensitive(profit_entries[i - 1], FALSE);
+
+            g_signal_connect(profit_checks[i - 1], "toggled", G_CALLBACK(on_profit_check_toggled), profit_entries[i - 1]);
+
+            GList *widget_children = gtk_container_get_children(GTK_CONTAINER(cloned_widget));
+            if (widget_children)
+            {
+                GtkWidget *title_label = GTK_WIDGET(widget_children->data);
+                char title[50];
+                snprintf(title, sizeof(title), "Year %d of Equipment Life", i);
+                gtk_label_set_text(GTK_LABEL(title_label), title);
+            }
+            g_list_free(widget_children);
+
+            gtk_box_pack_start(GTK_BOX(equipmentContainer), cloned_widget, FALSE, FALSE, 0);
+        }
+
+        // Load data
+        for (int i = 0; i < lifespan; i++)
+        {
+            int maintenance, resale, profit, has_profit;
+            if (fscanf(file, "%d %d %d %d", &maintenance, &resale, &profit, &has_profit) != 4)
+            {
+                fclose(file);
+                g_free(filename);
+                gtk_widget_destroy(dialog);
+                return 0;
+            }
+
+            // Set maintenance cost
+            char value_str[20];
+            snprintf(value_str, sizeof(value_str), "%d", maintenance);
+            gtk_entry_set_text(GTK_ENTRY(maintenance_entries[i]), value_str);
+
+            // Set resale price
+            snprintf(value_str, sizeof(value_str), "%d", resale);
+            gtk_entry_set_text(GTK_ENTRY(resale_entries[i]), value_str);
+
+            // Set profit checkbox and value
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(profit_checks[i]), has_profit);
+            if (has_profit)
+            {
+                gtk_widget_set_sensitive(profit_entries[i], TRUE);
+                snprintf(value_str, sizeof(value_str), "%d", profit);
+                gtk_entry_set_text(GTK_ENTRY(profit_entries[i]), value_str);
+            }
+            else
+            {
+                gtk_widget_set_sensitive(profit_entries[i], FALSE);
+                gtk_entry_set_text(GTK_ENTRY(profit_entries[i]), "");
+            }
+        }
+
+        fclose(file);
+        gtk_widget_show_all(equipmentContainer);
+        
+        g_free(filename);
+        gtk_widget_destroy(dialog);
+        return 1;
+    }
+
+    gtk_widget_destroy(dialog);
+    return 0;
+}
+
 void on_profit_check_toggled(GtkToggleButton *toggle_button, gpointer user_data)
 {
     GtkWidget *profit_entry = GTK_WIDGET(user_data);
@@ -604,6 +893,36 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     system("evince --presentation output.pdf &");
 
     g_print("Algorithm executed. Minimum cost: %d\n", g_values[0]);
+}
+
+void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
+{
+    const char *cost_text = gtk_entry_get_text(GTK_ENTRY(costEntry));
+    if (strlen(cost_text) == 0 || atoi(cost_text) <= 0)
+    {
+        GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                   GTK_DIALOG_MODAL,
+                                                   GTK_MESSAGE_ERROR,
+                                                   GTK_BUTTONS_OK,
+                                                   "Please enter valid equipment data before saving.");
+        gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+        return;
+    }
+
+    init_equipment_cost = atoi(cost_text);
+    term = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(projectSpin));
+    lifespan = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(lifeSpin));
+
+    save_data_to_file();
+}
+
+void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
+{
+    if (load_data_from_file())
+    {
+        gtk_stack_set_visible_child_name(GTK_STACK(mainStack), "page1");
+    }
 }
 
 int main(int argc, char *argv[])
