@@ -845,6 +845,92 @@ void on_continueBtn_clicked(GtkButton *button, gpointer user_data)
 
 void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 {
+    // Validate all entries before processing
+    for (int i = 0; i < lifespan; i++)
+    {
+        const char *maint_text = gtk_entry_get_text(GTK_ENTRY(maintenance_entries[i]));
+        const char *resale_text = gtk_entry_get_text(GTK_ENTRY(resale_entries[i]));
+        
+        if (strlen(maint_text) == 0)
+        {
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                       GTK_DIALOG_MODAL,
+                                                       GTK_MESSAGE_ERROR,
+                                                       GTK_BUTTONS_OK,
+                                                       "Please enter maintenance cost for year %d.", i + 1);
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+            return;
+        }
+        
+        int maintenance = atoi(maint_text);
+        if (maintenance <= 0)
+        {
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                       GTK_DIALOG_MODAL,
+                                                       GTK_MESSAGE_ERROR,
+                                                       GTK_BUTTONS_OK,
+                                                       "Maintenance cost for year %d must be greater than 0.", i + 1);
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+            return;
+        }
+        
+        if (strlen(resale_text) == 0)
+        {
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                       GTK_DIALOG_MODAL,
+                                                       GTK_MESSAGE_ERROR,
+                                                       GTK_BUTTONS_OK,
+                                                       "Please enter resale price for year %d.", i + 1);
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+            return;
+        }
+        
+        int resale = atoi(resale_text);
+        if (resale <= 0)
+        {
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                       GTK_DIALOG_MODAL,
+                                                       GTK_MESSAGE_ERROR,
+                                                       GTK_BUTTONS_OK,
+                                                       "Resale price for year %d must be greater than 0.", i + 1);
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+            return;
+        }
+        
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(profit_checks[i])))
+        {
+            const char *profit_text = gtk_entry_get_text(GTK_ENTRY(profit_entries[i]));
+            if (strlen(profit_text) == 0)
+            {
+                GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                           GTK_DIALOG_MODAL,
+                                                           GTK_MESSAGE_ERROR,
+                                                           GTK_BUTTONS_OK,
+                                                           "Please enter profit value for year %d or uncheck the profit option.", i + 1);
+                gtk_dialog_run(GTK_DIALOG(dialog));
+                gtk_widget_destroy(dialog);
+                return;
+            }
+            
+            int profit = atoi(profit_text);
+            if (profit < 0)
+            {
+                GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                           GTK_DIALOG_MODAL,
+                                                           GTK_MESSAGE_ERROR,
+                                                           GTK_BUTTONS_OK,
+                                                           "Profit for year %d cannot be negative.", i + 1);
+                gtk_dialog_run(GTK_DIALOG(dialog));
+                gtk_widget_destroy(dialog);
+                return;
+            }
+        }
+    }
+
     // Data for maintenance and resale
     maintenance_costs = (int *)malloc(lifespan * sizeof(int));
     resale_prices = (int *)malloc(lifespan * sizeof(int));
@@ -891,8 +977,6 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
 
     system("pdflatex output.tex");
     system("evince --presentation output.pdf &");
-
-    g_print("Algorithm executed. Minimum cost: %d\n", g_values[0]);
 }
 
 void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
