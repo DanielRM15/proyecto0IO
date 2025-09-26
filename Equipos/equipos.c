@@ -13,10 +13,14 @@ GtkWidget *equipmentWidget;
 GtkWidget *costEntry;
 GtkWidget *projectSpin;
 GtkWidget *lifeSpin;
+GtkWidget *inflationEntry;
+GtkWidget *inflationCheck;
 
 int init_equipment_cost;
 int term;
 int lifespan;
+double inflation_rate;
+int use_inflation;
 
 int *maintenance_costs;
 int *resale_prices;
@@ -74,19 +78,34 @@ int calculate_ctx(int t, int x)
 
     int cost = init_equipment_cost;
 
+    if (use_inflation && t > 0)
+    {
+        cost = init_equipment_cost * pow(1 + inflation_rate, t);
+    }
+
     // Add maintenance costs from year t+1 to x
     for (int i = 1; i <= x - t; i++)
     {
         if (i <= lifespan)
         {
-            cost += maintenance_costs[i - 1];
+            double inflated_maintenance = maintenance_costs[i - 1];
+            if (use_inflation)
+            {
+                inflated_maintenance = maintenance_costs[i - 1] * pow(1 + inflation_rate, t + i);
+            }
+            cost += inflated_maintenance;
         }
     }
 
     // Subtract resale price at year x-t of useful life
     if (x - t <= lifespan)
     {
-        cost -= resale_prices[x - t - 1];
+        double inflated_resale = resale_prices[x - t - 1];
+        if (use_inflation)
+        {
+            inflated_resale = resale_prices[x - t - 1] * pow(1 + inflation_rate, x);
+        }
+        cost -= inflated_resale;
     }
 
     // If there are profits, subtract them
@@ -96,12 +115,17 @@ int calculate_ctx(int t, int x)
         {
             if (i <= lifespan && profits[i - 1] > 0)
             {
-                cost -= profits[i - 1];
+                double inflated_profit = profits[i - 1];
+                if (use_inflation)
+                {
+                    inflated_profit = profits[i - 1] * pow(1 + inflation_rate, t + i);
+                }
+                cost -= inflated_profit;
             }
         }
     }
 
-    return cost;
+    return (int)round(cost);
 }
 
 // Main algorithm to solve the equipment replacement problem
@@ -196,36 +220,8 @@ void generate_step_by_step_calculations()
                         fprintf(output_file, ", ");
                     }
 
-                    fprintf(output_file, "C_{%d%d} + G(%d) = ", t, x, x);
-
-                    fprintf(output_file, "(");
-                    fprintf(output_file, "%d", init_equipment_cost);
-
-                    for (int i = 1; i <= x - t; i++)
-                    {
-                        if (i <= lifespan)
-                        {
-                            fprintf(output_file, " + %d", maintenance_costs[i - 1]);
-                        }
-                    }
-
-                    if (x - t <= lifespan)
-                    {
-                        fprintf(output_file, " - %d", resale_prices[x - t - 1]);
-                    }
-
-                    if (use_profits)
-                    {
-                        for (int i = 1; i <= x - t; i++)
-                        {
-                            if (i <= lifespan && profits[i - 1] > 0)
-                            {
-                                fprintf(output_file, " - %d", profits[i - 1]);
-                            }
-                        }
-                    }
-
-                    fprintf(output_file, ") + %d = %d", g_values[x], ctx_table[t][x] + g_values[x]);
+                    fprintf(output_file, "C_{%d%d} + G(%d) = %d + %d = %d", 
+                            t, x, x, ctx_table[t][x], g_values[x], ctx_table[t][x] + g_values[x]);
                     valid_options++;
                 }
             }
@@ -309,13 +305,32 @@ void generate_all_plans(int current_time, int *plan_number, int *current_plan, i
     }
 }
 
+void on_inflation_check_toggled(GtkToggleButton *toggle_button, gpointer user_data)
+{
+    GtkWidget *inflation_entry = GTK_WIDGET(user_data);
+    gboolean is_active = gtk_toggle_button_get_active(toggle_button);
+    
+    gtk_widget_set_sensitive(inflation_entry, is_active);
+    if (!is_active)
+    {
+        gtk_entry_set_text(GTK_ENTRY(inflation_entry), "");
+    }
+}
+
 void generate_latex_report()
 {
     // Problem description
     fprintf(output_file,
             "\\newpage\n"
-            "\\section*{Equipment Replacement Problem}\n"
-            "The equipment replacement problem is an optimization problem that involves deciding the optimal time to replace a piece of equipment (sell and re-buy) to minimize business costs. There are four main components to this problem:\n"
+            "\\section*{Equipment Replacement Problem}\n");
+            
+    if (use_inflation) {
+        fprintf(output_file,"\\textbf{Note:} This problem includes inflation consideration with a constant rate of %.2f\\%% per time unit.\n\n", inflation_rate * 100);
+    }
+
+    fprintf(output_file,
+            "The equipment replacement problem is an optimization problem that involves deciding the optimal time to replace a piece of equipment (sell and re-buy) to minimize business costs. \n"
+            "There are four main components to this problem:\n"
             "\n"
             "\\begin{itemize}\n"
             "    \\item The project term (e.g. 5 years long project)\n"
@@ -364,93 +379,41 @@ void generate_latex_report()
     fprintf(output_file,
             "\\subsection*{Equipment Life Cycle Costs}\n"
             "\\begin{center}\n"
-            "\\begin{tabular}{|c|c|c|}\n"
-            "\\hline\n"
-            "Year & Maintenance Cost & Resale Price \\\\\n"
-            "\\hline\n");
-
-    for (int i = 0; i < lifespan; i++)
-    {
-        fprintf(output_file, "%d & %d & %d \\\\\n",
-                i + 1, maintenance_costs[i], resale_prices[i]);
-    }
-
-    fprintf(output_file,
-            "\\hline\n"
-            "\\end{tabular}\n"
-            "\\end{center}\n\n");
-
-    // Ctx calculations
-    fprintf(output_file,
-            "\\subsection*{$C_{tx}$ Calculations}\n\n");
-
-    // Calculate costs by usage duration to avoid repetition
-    for (int duration = 1; duration <= lifespan; duration++)
-    {
-        fprintf(output_file, "\\textbf{%d year(s):}\n", duration);
-
-        int cost = init_equipment_cost;
-        fprintf(output_file, "$C_{t,t+%d} = %d", duration, init_equipment_cost);
-
-        // Add maintenance costs
-        for (int i = 1; i <= duration; i++)
-        {
-            cost += maintenance_costs[i - 1];
-            fprintf(output_file, " + %d", maintenance_costs[i - 1]);
-        }
-
-        // Subtract resale price
-        cost -= resale_prices[duration - 1];
-        fprintf(output_file, " - %d", resale_prices[duration - 1]);
-
-        // Subtract profits if enabled
-        if (use_profits)
-        {
-            for (int i = 1; i <= duration; i++)
-            {
-                if (profits[i - 1] > 0)
-                {
-                    cost -= profits[i - 1];
-                    fprintf(output_file, " - %d", profits[i - 1]);
-                }
-            }
-        }
-
-        fprintf(output_file, " = %d$\n\n", cost);
-    }
-
-    // Ctx Table
-    fprintf(output_file,
-            "\\subsection*{$C_{tx}$ Table}\n"
-            "\\begin{center}\n"
-            "\\begin{tabular}{|c|");
-
-    for (int x = 1; x <= term; x++)
+            "\\begin{tabular}{|c|c|c|");
+            
+    // Add extra column only for profits
+    if (use_profits)
     {
         fprintf(output_file, "c|");
     }
-    fprintf(output_file, "}\n\\hline\nt/x");
-
-    for (int x = 1; x <= term; x++)
+    
+    fprintf(output_file, "}\n\\hline\n");
+    fprintf(output_file, "Year & Maintenance Cost & Resale Price");
+    
+    if (use_profits)
     {
-        fprintf(output_file, " & %d", x);
+        fprintf(output_file, " & Profit");
     }
+    
     fprintf(output_file, " \\\\\n\\hline\n");
 
-    for (int t = 0; t < term; t++)
+    for (int i = 0; i < lifespan; i++)
     {
-        fprintf(output_file, "%d", t);
-        for (int x = 1; x <= term; x++)
+        fprintf(output_file, "%d & %d & %d", 
+                i + 1, maintenance_costs[i], resale_prices[i]);
+                
+        if (use_profits)
         {
-            if (x > t && ctx_table[t][x] != INT_MAX)
+            if (profits[i] > 0)
             {
-                fprintf(output_file, " & %d", ctx_table[t][x]);
+                fprintf(output_file, " & %d", profits[i]);
             }
             else
             {
                 fprintf(output_file, " & --");
             }
         }
+        
         fprintf(output_file, " \\\\\n");
     }
 
@@ -458,6 +421,208 @@ void generate_latex_report()
             "\\hline\n"
             "\\end{tabular}\n"
             "\\end{center}\n\n");
+
+    // Problem parameters as text
+    fprintf(output_file,
+            "\\subsection*{Problem Parameters}\n"
+            "\\begin{itemize}\n"
+            "    \\item \\textbf{Initial Equipment Cost:} %d\n"
+            "    \\item \\textbf{Project Term:} %d years\n"
+            "    \\item \\textbf{Equipment Lifespan:} %d years\n",
+            init_equipment_cost, term, lifespan);
+            
+    if (use_inflation)
+    {
+        fprintf(output_file,
+                "    \\item \\textbf{Inflation Rate:} %.2f\\%% per time unit\n"
+                "    \\item \\textbf{Note:} All costs and profits will be inflated according to the time period when they occur.\n",
+                inflation_rate * 100);
+    }
+    else
+    {
+        fprintf(output_file, "    \\item \\textbf{Inflation:} Not considered\n");
+    }
+    
+    fprintf(output_file, "\\end{itemize}\n\n");
+
+    // Ctx calculations
+    fprintf(output_file,
+            "\\subsection*{$C_{tx}$ Calculations}\n\n");
+
+    if (use_inflation)
+    {
+        fprintf(output_file, " (with %.2f\\%% inflation)", inflation_rate * 100);
+    }
+
+    fprintf(output_file, "\n\n");
+
+    if (use_inflation)
+    {
+        fprintf(output_file,
+                "\\textbf{Inflation Formula:} Value at time $t$ = Base Value $\\times (1 + %.4f)^t$\n\n",
+                inflation_rate);
+    }
+
+    // If no inflation, show simple calculations by duration
+    if (!use_inflation)
+    {
+        // Calculate costs by usage duration to avoid repetition
+        for (int duration = 1; duration <= lifespan; duration++)
+        {
+            fprintf(output_file, "\\textbf{%d year(s):}\n", duration);
+
+            int cost = init_equipment_cost;
+            fprintf(output_file, "$C_{t,t+%d} = %d", duration, init_equipment_cost);
+
+            // Add maintenance costs
+            for (int i = 1; i <= duration; i++)
+            {
+                cost += maintenance_costs[i - 1];
+                fprintf(output_file, " + %d", maintenance_costs[i - 1]);
+            }
+
+            // Subtract resale price
+            cost -= resale_prices[duration - 1];
+            fprintf(output_file, " - %d", resale_prices[duration - 1]);
+
+            // Subtract profits if enabled
+            if (use_profits)
+            {
+                for (int i = 1; i <= duration; i++)
+                {
+                    if (profits[i - 1] > 0)
+                    {
+                        cost -= profits[i - 1];
+                        fprintf(output_file, " - %d", profits[i - 1]);
+                    }
+                }
+            }
+
+            fprintf(output_file, " = %d$\n\n", cost);
+        }
+    }
+    else
+    {
+        
+        for (int t = 0; t < term; t++)
+        {
+            fprintf(output_file, "\\textbf{Equipment bought at time %d:}\n", t);
+            
+            for (int x = t + 1; x <= term && x <= t + lifespan; x++)
+            {
+                if (ctx_table[t][x] != INT_MAX)
+                {
+                    int duration = x - t;
+                    fprintf(output_file, "$C_{%d%d} = ", t, x);
+                    
+                    // Initial cost with inflation
+                    if (t > 0)
+                    {
+                        fprintf(output_file, "%d \\times (1+%.4f)^{%d}", init_equipment_cost, inflation_rate, t);
+                    }
+                    else
+                    {
+                        fprintf(output_file, "%d", init_equipment_cost);
+                    }
+                    
+                    // Add maintenance costs with inflation
+                    for (int i = 1; i <= duration; i++)
+                    {
+                        if (i <= lifespan)
+                        {
+                            fprintf(output_file, " + %d \\times (1+%.4f)^{%d}", 
+                                   maintenance_costs[i - 1], inflation_rate, t + i);
+                        }
+                    }
+                    
+                    // Subtract resale price with inflation
+                    if (duration <= lifespan)
+                    {
+                        fprintf(output_file, " - %d \\times (1+%.4f)^{%d}", 
+                               resale_prices[duration - 1], inflation_rate, x);
+                    }
+                    
+                    // Subtract profits with inflation if enabled
+                    if (use_profits)
+                    {
+                        for (int i = 1; i <= duration; i++)
+                        {
+                            if (i <= lifespan && profits[i - 1] > 0)
+                            {
+                                fprintf(output_file, " - %d \\times (1+%.4f)^{%d}", 
+                                       profits[i - 1], inflation_rate, t + i);
+                            }
+                        }
+                    }
+                    
+                    fprintf(output_file, " = %d$\n\n", ctx_table[t][x]);
+                }
+            }
+            fprintf(output_file, "\n");
+        }
+    }
+
+    // Ctx Table
+    fprintf(output_file, "\\subsection*{$C_{tx}$ Table}\n");
+    
+    int max_cols_per_page = 10;
+    int total_pages = (term + max_cols_per_page - 1) / max_cols_per_page;
+    
+    for (int page = 0; page < total_pages; page++)
+    {
+        int start_col = page * max_cols_per_page + 1;
+        int end_col = (page + 1) * max_cols_per_page;
+        if (end_col > term) end_col = term;
+        
+        if (total_pages > 1)
+        {
+            fprintf(output_file, "\\textbf{Table %d/%d - Columns %d to %d:}\n\n", 
+                    page + 1, total_pages, start_col, end_col);
+        }
+        
+        fprintf(output_file, "\\begin{center}\n");
+        fprintf(output_file, "\\begin{tabular}{|c|");
+        
+        for (int x = start_col; x <= end_col; x++)
+        {
+            fprintf(output_file, "c|");
+        }
+        fprintf(output_file, "}\n\\hline\nt/x");
+        
+        for (int x = start_col; x <= end_col; x++)
+        {
+            fprintf(output_file, " & %d", x);
+        }
+        fprintf(output_file, " \\\\\n\\hline\n");
+        
+        for (int t = 0; t < term; t++)
+        {
+            fprintf(output_file, "%d", t);
+            for (int x = start_col; x <= end_col; x++)
+            {
+                if (x > t && ctx_table[t][x] != INT_MAX)
+                {
+                    fprintf(output_file, " & %d", ctx_table[t][x]);
+                }
+                else
+                {
+                    fprintf(output_file, " & --");
+                }
+            }
+            fprintf(output_file, " \\\\\n");
+        }
+        
+        fprintf(output_file,
+                "\\hline\n"
+                "\\end{tabular}\n"
+                "\\end{center}\n\n");
+        
+        // Add page break if not the last page
+        if (page < total_pages - 1)
+        {
+            fprintf(output_file, "\\newpage\n");
+        }
+    }
 
     // Step by step calculations
     generate_step_by_step_calculations();
@@ -573,6 +738,15 @@ void save_data_to_file()
         fprintf(file, "%d\n", init_equipment_cost);
         fprintf(file, "%d\n", term);
         fprintf(file, "%d\n", lifespan);
+        fprintf(file, "%d\n", use_inflation);
+        if (use_inflation)
+        {
+            fprintf(file, "%.6f\n", inflation_rate);
+        }
+        else
+        {
+            fprintf(file, "0.0\n");
+        }
 
         // Save maintenance costs, resale prices, and profits
         for (int i = 0; i < lifespan; i++)
@@ -656,11 +830,14 @@ int load_data_from_file()
             return 0;
         }
 
-        int loaded_cost, loaded_term, loaded_lifespan;
+        int loaded_cost, loaded_term, loaded_lifespan, loaded_use_inflation;
+        double loaded_inflation_rate;
         
         if (fscanf(file, "%d", &loaded_cost) != 1 ||
             fscanf(file, "%d", &loaded_term) != 1 ||
-            fscanf(file, "%d", &loaded_lifespan) != 1)
+            fscanf(file, "%d", &loaded_lifespan) != 1 ||
+            fscanf(file, "%d", &loaded_use_inflation) != 1 ||
+            fscanf(file, "%lf", &loaded_inflation_rate) != 1)
         {
             fclose(file);
             g_free(filename);
@@ -678,6 +855,22 @@ int load_data_from_file()
         init_equipment_cost = loaded_cost;
         term = loaded_term;
         lifespan = loaded_lifespan;
+        use_inflation = loaded_use_inflation;
+        inflation_rate = loaded_inflation_rate;
+
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(inflationCheck), use_inflation);
+        if (use_inflation)
+        {
+            gtk_widget_set_sensitive(inflationEntry, TRUE);
+            char inflation_str[20];
+            snprintf(inflation_str, sizeof(inflation_str), "%.2f", inflation_rate * 100);
+            gtk_entry_set_text(GTK_ENTRY(inflationEntry), inflation_str);
+        }
+        else
+        {
+            gtk_widget_set_sensitive(inflationEntry, FALSE);
+            gtk_entry_set_text(GTK_ENTRY(inflationEntry), "");
+        }
 
         // Recreate the equipment widgets
         maintenance_entries = (GtkWidget **)malloc(lifespan * sizeof(GtkWidget *));
@@ -694,7 +887,7 @@ int load_data_from_file()
 
         for (int i = 1; i <= lifespan; i++)
         {
-            GtkBuilder *temp_builder = gtk_builder_new_from_file("equipos.glade");
+            GtkBuilder *temp_builder = gtk_builder_new_from_file("Equipos/equipos.glade");
             GtkWidget *cloned_widget = GTK_WIDGET(gtk_builder_get_object(temp_builder, "equipmentWidget"));
 
             maintenance_entries[i - 1] = GTK_WIDGET(gtk_builder_get_object(temp_builder, "maintCostEntry"));
@@ -787,6 +980,39 @@ void on_continueBtn_clicked(GtkButton *button, gpointer user_data)
     term = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(projectSpin));
     lifespan = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(lifeSpin));
 
+    use_inflation = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(inflationCheck));
+    inflation_rate = 0.0;
+
+    if (use_inflation)
+    {
+        const char *inflation_text = gtk_entry_get_text(GTK_ENTRY(inflationEntry));
+        if (strlen(inflation_text) == 0)
+        {
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                       GTK_DIALOG_MODAL,
+                                                       GTK_MESSAGE_ERROR,
+                                                       GTK_BUTTONS_OK,
+                                                       "Please enter inflation rate or uncheck inflation option.");
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+            return;
+        }
+        
+        inflation_rate = atof(inflation_text) / 100.0;
+        
+        if (inflation_rate < 0)
+        {
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
+                                                       GTK_DIALOG_MODAL,
+                                                       GTK_MESSAGE_ERROR,
+                                                       GTK_BUTTONS_OK,
+                                                       "Inflation rate cannot be negative.");
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+            return;
+        }
+    }
+
     if (strlen(cost_text) == 0 || init_equipment_cost <= 0)
     {
         GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
@@ -813,7 +1039,7 @@ void on_continueBtn_clicked(GtkButton *button, gpointer user_data)
 
     for (int i = 1; i <= lifespan; i++)
     {
-        GtkBuilder *temp_builder = gtk_builder_new_from_file("equipos.glade");
+        GtkBuilder *temp_builder = gtk_builder_new_from_file("Equipos/equipos.glade");
         GtkWidget *cloned_widget = GTK_WIDGET(gtk_builder_get_object(temp_builder, "equipmentWidget"));
 
         maintenance_entries[i - 1] = GTK_WIDGET(gtk_builder_get_object(temp_builder, "maintCostEntry"));
@@ -962,7 +1188,7 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     solve_equipment_replacement();
 
     // Generate report
-    output_file = fopen("output.tex", "w");
+    output_file = fopen("Equipos/output.tex", "w");
     if (output_file == NULL)
     {
         g_print("Failed to open LaTeX file");
@@ -975,7 +1201,7 @@ void on_runBtn_clicked(GtkButton *button, gpointer user_data)
     fprintf(output_file, "\\end{document}");
     fclose(output_file);
 
-    system("pdflatex output.tex");
+    system("pdflatex Equipos/output.tex");
     system("evince --presentation output.pdf &");
 }
 
@@ -1013,8 +1239,8 @@ int main(int argc, char *argv[])
 {
     gtk_init(&argc, &argv);
 
-    // GtkBuilder *builder = gtk_builder_new_from_file("Equipos/equipos.glade"); // Si se abre desde el menu
-    GtkBuilder *builder = gtk_builder_new_from_file("equipos.glade"); // Si se abre SIN en menu
+    GtkBuilder *builder = gtk_builder_new_from_file("Equipos/equipos.glade"); // Si se abre desde el menu
+    //GtkBuilder *builder = gtk_builder_new_from_file("equipos.glade"); // Si se abre SIN en menu
 
     main_window = GTK_WIDGET(gtk_builder_get_object(builder, "hWindow"));
     mainStack = GTK_WIDGET(gtk_builder_get_object(builder, "mainStack"));
@@ -1026,6 +1252,8 @@ int main(int argc, char *argv[])
     costEntry = GTK_WIDGET(gtk_builder_get_object(builder, "costEntry"));
     projectSpin = GTK_WIDGET(gtk_builder_get_object(builder, "projectSpin"));
     lifeSpin = GTK_WIDGET(gtk_builder_get_object(builder, "lifeSpin"));
+    inflationEntry = GTK_WIDGET(gtk_builder_get_object(builder, "inflationEntry"));
+    inflationCheck = GTK_WIDGET(gtk_builder_get_object(builder, "inflationCheck"));
 
     // exit
     g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
