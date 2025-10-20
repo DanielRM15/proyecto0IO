@@ -12,6 +12,7 @@ GtkWidget *constraints_container;
 GtkWidget *problem_input; // problem name
 GtkWidget *variables_spin;
 GtkWidget *constraints_spin;
+GtkWidget *constraint_page_label;
 
 GtkWidget *variable_widgets[15];
 GtkWidget *coefficient_widgets[15];
@@ -29,6 +30,7 @@ int table_rows;
 
 void simplex()
 {
+	int safe = 0;
 	while (1)
 	{
 		for (int i = 0; i < table_rows; i++)
@@ -40,24 +42,37 @@ void simplex()
 			g_print("\n");
 		}
 		g_print("\n");
-		int most_negative = 0; // The most negative column (index, not value)
-		for (int i = 0; i < table_cols; i++)
+		int pivot_col = 1; // The most negative column (index, not value)
+		for (int i = 2; i < table_cols - 1; i++)
 		{
-			if (simplex_table[0][i] < simplex_table[0][most_negative])
-				most_negative = i;
+			if (mode == 0)
+			{
+				if (simplex_table[0][i] < simplex_table[0][pivot_col])
+					pivot_col = i;
+			}
+			else
+			{
+				if (simplex_table[0][i] > simplex_table[0][pivot_col])
+					pivot_col = i;
+			}
 		}
-		if (simplex_table[0][most_negative] >= 0)
+
+		if (mode == 0 && simplex_table[0][pivot_col] >= 0)
+			break;
+		if (mode == 1 && simplex_table[0][pivot_col] <= 0)
 			break;
 
 		int smallest_frac = 1; // The most negative fraction row
 		for (int i = 2; i < table_rows; i++)
 		{
-			if (simplex_table[i][table_cols - 1] / simplex_table[i][most_negative] < simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][most_negative])
+			if (simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col] < 0)
+				continue;
+			if (simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col] < simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
 				smallest_frac = i;
 		}
 
 		// Make a 1 on smallest frac cell
-		double div_value = simplex_table[smallest_frac][most_negative];
+		double div_value = simplex_table[smallest_frac][pivot_col];
 		for (int i = 0; i < table_cols; i++)
 		{
 			simplex_table[smallest_frac][i] = simplex_table[smallest_frac][i] / div_value;
@@ -69,12 +84,15 @@ void simplex()
 			if (i == smallest_frac)
 				continue;
 
-			double mult_value = -simplex_table[i][most_negative];
+			double mult_value = -simplex_table[i][pivot_col];
 			for (int j = 0; j < table_cols; j++)
 			{
 				simplex_table[i][j] = simplex_table[i][j] + mult_value * simplex_table[smallest_frac][j];
 			}
 		}
+		safe++;
+		if (safe > 20)
+			break;
 	}
 
 	// print table
@@ -93,7 +111,7 @@ void fill_simplex_row(int row) // Fills a row with coefficients from coefficient
 	if (!simplex_table)
 	{
 		table_rows = constraint_amount + 1;
-		table_cols = (2 * variable_amount) + 2;
+		table_cols = 2 + variable_amount + constraint_amount;
 		simplex_table = malloc(table_rows * sizeof(*simplex_table));
 		for (int i = 0; i < table_rows; i++)
 			simplex_table[i] = malloc(table_cols * sizeof(double));
@@ -112,10 +130,10 @@ void fill_simplex_row(int row) // Fills a row with coefficients from coefficient
 		if (j == table_cols - 1) // last cell
 		{
 			if (row == 0)
-			{
 				simplex_table[row][j] = 0;
-				break;
-			}
+			else
+				simplex_table[row][j] = (double)gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[variable_amount]));
+			break;
 		}
 		if (j > variable_amount) // slack cells
 		{
@@ -127,9 +145,9 @@ void fill_simplex_row(int row) // Fills a row with coefficients from coefficient
 		}
 
 		if (row == 0)
-			simplex_table[row][j] = (double)-gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[j]));
+			simplex_table[row][j] = (double)-gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[j - 1]));
 		else
-			simplex_table[row][j] = (double)gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[j]));
+			simplex_table[row][j] = (double)gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[j - 1]));
 	}
 }
 
@@ -244,8 +262,13 @@ void on_next_constraintBtn(GtkButton *button, gpointer user_data)
 	if (constraint_page_count >= constraint_amount)
 	{
 		gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page4");
-		simplex();
 		return;
+	}
+	else
+	{
+		char title_text[50];
+		sprintf(title_text, "Constraint %d", constraint_page_count + 1);
+		gtk_label_set_text(GTK_LABEL(constraint_page_label), title_text);
 	}
 
 	// Remove current constraint widgets
@@ -269,6 +292,11 @@ void on_next_constraintBtn(GtkButton *button, gpointer user_data)
 	gtk_widget_show_all(constraints_container);
 }
 
+void on_solveBtn(GtkButton *button, gpointer user_data)
+{
+	simplex();
+}
+
 int main(int argc, char *argv[])
 {
 	// simplex();
@@ -290,6 +318,7 @@ int main(int argc, char *argv[])
 	variables_container = GTK_WIDGET(gtk_builder_get_object(builder, "variables_container"));
 	objective_container = GTK_WIDGET(gtk_builder_get_object(builder, "objective_container"));
 	constraints_container = GTK_WIDGET(gtk_builder_get_object(builder, "constraints_container"));
+	constraint_page_label = GTK_WIDGET(gtk_builder_get_object(builder, "constraint_label"));
 
 	GtkWidget *problem_input; // problem name
 	GtkWidget *variables_spin;
