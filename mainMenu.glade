@@ -65,11 +65,11 @@
         </child>
         <child>
           <object class="GtkButton" id="button2">
-            <property name="label" translatable="yes">Reemplazo de Equipos</property>
+            <property name="label" translatable="yes">Equipment Replacement</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
-            <property name="tooltip-text" translatable="yes">Dynamic Programming algorithm 3</property>
+            <property name="tooltip-text" translatable="yes">The equipment replacement problem is a decision-making problem that focuses on determining the optimal time to replace equipment such as machines, vehicles, or computers in order to minimize long-term costs. As equipment ages, its operating and maintenance costs usually increase while its efficiency and resale value decline. Replacing it requires a large initial expense but reduces future operating costs. The problem is to balance these trade-offs and decide whether to keep the old equipment or replace it so that the overall cost over time is minimized.</property>
             <property name="margin-start">20</property>
             <property name="margin-end">20</property>
             <signal name="clicked" handler="on_equipos_clicked" swapped="no"/>
