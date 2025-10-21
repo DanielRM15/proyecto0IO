@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 
+FILE *output_file;
 GtkWidget *main_window;
 GtkWidget *main_stack;
 GtkWidget *variables_container;
@@ -21,27 +22,156 @@ char *variable_names[15];
 char *problem_name;
 int variable_amount;
 int constraint_amount;
-int mode = 0; // 0 for max, 1 for min;
+int mode = 0;				 // 0 for max, 1 for min;
+int intermediate_tables = 0; // 1 yes, 0 no
 int constraint_page_count = 0;
 
 double **simplex_table;
 int table_cols;
 int table_rows;
 
+void setup_latex()
+{
+	fprintf(output_file,
+			"\\documentclass[12pt,a4paper]{article}\n"
+			"\\usepackage[table]{xcolor}\n"
+			"\\usepackage{float}\n"
+			"\\usepackage{geometry}\n"
+			"\\geometry{margin=1in}\n"
+			"\n"
+			"\\begin{document}\n"
+			"\\begin{titlepage}\n"
+			"    \\centering\n"
+			"    \\vspace*{3cm}\n"
+			"    {\\Huge \\textbf{Instituto Tecnológico de Costa Rica}} \\\\[2cm]\n"
+			"    {\\Large \\textbf{Operations Research - Semester II}} \\\\[2cm]\n"
+			"    {\\LARGE \\textbf{Knapsack Problem}} \\\\[3cm]\n"
+			"    {\\Large Members:} \\\\[0.5cm]\n"
+			"    {\\large Adrián Zamora Chavarría \\\\ Daniel Romero Murillo} \\\\[2cm]\n"
+			"    {\\large Date: \\today}\n"
+			"    \\vfill\n"
+			"\\end{titlepage}\n"
+			"\\newpage\n");
+}
+
+void print_simplex_table(int highlight_row, int highlight_col, int print_fractions)
+{
+	fprintf(output_file, "\\begin{table}[H]\n");
+	fprintf(output_file, "\\centering\n");
+	fprintf(output_file, "\\begin{tabular}{c|");
+	for (int i = 0; i < table_cols; i++)
+		fprintf(output_file, "r");
+	if (print_fractions)
+		fprintf(output_file, "r");
+
+	fprintf(output_file, "}\n");
+	fprintf(output_file, "& Z ");
+	for (int i = 0; i < variable_amount; i++)
+		fprintf(output_file, "& %s", variable_names[i]);
+	for (int i = 0; i < constraint_amount; i++)
+		fprintf(output_file, "& $s_%d$", i);
+	fprintf(output_file, "& b");
+	if (print_fractions)
+		fprintf(output_file, "& Frac");
+	fprintf(output_file, "\\\\ \\hline\n");
+
+	for (int i = 0; i < table_rows; i++)
+	{
+		for (int j = 0; j < table_cols; j++)
+		{
+			fprintf(output_file, "& ");
+			if ((highlight_row != -1 && highlight_col != -1 && i == highlight_row && j == highlight_col) ||
+				(highlight_row != -1 && highlight_col == -1 && i == highlight_row) ||
+				(highlight_col != -1 && highlight_row == -1 && j == highlight_col))
+			{
+				fprintf(output_file, "\\cellcolor{cyan!30} ");
+			}
+			fprintf(output_file, "%.2f", simplex_table[i][j]);
+		}
+		if (print_fractions)
+		{
+			fprintf(output_file, "& ");
+			if (i > 0)
+				fprintf(output_file, "%.2f", simplex_table[i][table_cols - 1] / simplex_table[i][print_fractions]);
+		}
+		fprintf(output_file, "\\\\\n");
+	}
+	fprintf(output_file, "\\end{tabular}\n");
+	fprintf(output_file, "\\end{table}\n");
+}
+
+void print_problem_model()
+{
+	fprintf(output_file, "\\section*{");
+	fprintf(output_file, problem_name);
+	fprintf(output_file, "}\n");
+	if (mode)
+		fprintf(output_file, "Minimize\n\\begin{center}\nZ = ");
+	else
+		fprintf(output_file, "Maximize\n\\begin{center}\nZ = ");
+
+	for (int i = 1; i <= variable_amount; i++)
+	{
+		double val = -simplex_table[0][i];
+		if (val < 0)
+		{
+			fprintf(output_file, "- ");
+			val *= -1;
+		}
+		else
+		{
+			if (i > 1)
+				fprintf(output_file, "+ ");
+		}
+		fprintf(output_file, "%.2f%s ", val, variable_names[i - 1]);
+	}
+	fprintf(output_file, "\n\\end{center}\nSubject to\n\\begin{center}\n");
+	for (int i = 1; i <= constraint_amount; i++)
+	{
+		for (int j = 0; j < variable_amount + constraint_amount; j++)
+		{
+			double val = simplex_table[i][j + 1];
+			if (val < 0)
+			{
+				fprintf(output_file, "- ");
+				val *= -1;
+			}
+			else
+			{
+				if (j != 0)
+					fprintf(output_file, "+ ");
+			}
+
+			if (j < variable_amount)
+				fprintf(output_file, "%.2f%s ", val, variable_names[j]);
+			// else // Print slack variables
+			// 	fprintf(output_file, "%.2f$s_%d$ ", val, j - variable_amount + 1);
+		}
+		double val = simplex_table[i][table_cols - 1];
+		fprintf(output_file, "$\\leq$ %.2f \\\\\n", val);
+	}
+	fprintf(output_file, "\\end{center}\n");
+	fprintf(output_file, "Simplex Table\n");
+	print_simplex_table(-1, -1, 0);
+}
+
+void print_results()
+{
+	fprintf(output_file, "\\section*{Results}\n");
+	print_simplex_table(-1, -1, 0);
+	fprintf(output_file, "DESPUES TERMINO ESTO");
+}
+
 void simplex()
 {
+	if (intermediate_tables)
+		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
+
 	int safe = 0;
+	int pivoting = 0;
 	while (1)
 	{
-		for (int i = 0; i < table_rows; i++)
-		{
-			for (int j = 0; j < table_cols; j++)
-			{
-				g_print("%f  ", simplex_table[i][j]);
-			}
-			g_print("\n");
-		}
-		g_print("\n");
+		pivoting++;
 		int pivot_col = 1; // The most negative column (index, not value)
 		for (int i = 2; i < table_cols - 1; i++)
 		{
@@ -62,20 +192,44 @@ void simplex()
 		if (mode == 1 && simplex_table[0][pivot_col] <= 0)
 			break;
 
-		int smallest_frac = 1; // The most negative fraction row
-		for (int i = 2; i < table_rows; i++)
+		if (intermediate_tables) // Print intermediate tables data
 		{
-			if (simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col] < 0)
+			fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
+			if (mode)
+				fprintf(output_file, "\\subsection*{Most Positive}\n");
+			else
+				fprintf(output_file, "\\subsubsection*{Most Negative}\n");
+			fprintf(output_file, "Column %d (%.2f)\n", pivot_col + 1, simplex_table[0][pivot_col]);
+			print_simplex_table(0, pivot_col, 0);
+			fprintf(output_file, "\\subsubsection*{Fractions}\n");
+		}
+
+		print_simplex_table(-1, -1, pivot_col);
+		int smallest_frac = 1; // The smallest fraction row
+		for (int i = 1; i < table_rows; i++)
+		{
+			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
+			if (intermediate_tables)
+				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
+			if (frac < 0)
 				continue;
-			if (simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col] < simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
+			if (frac < simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
 				smallest_frac = i;
 		}
+		fprintf(output_file, "\\subsubsection*{Pivot}\n");
+		print_simplex_table(smallest_frac, pivot_col, 0);
 
 		// Make a 1 on smallest frac cell
 		double div_value = simplex_table[smallest_frac][pivot_col];
 		for (int i = 0; i < table_cols; i++)
 		{
 			simplex_table[smallest_frac][i] = simplex_table[smallest_frac][i] / div_value;
+		}
+		if (intermediate_tables)
+		{
+			fprintf(output_file, "\\subsubsection*{Canonization}\n", pivoting);
+			fprintf(output_file, "$R_%d \\leftarrow R_%d/%.2f$ \\\\", smallest_frac + 1, smallest_frac + 1, div_value);
+			print_simplex_table(smallest_frac, -1, 0);
 		}
 
 		// Convert col to 0s
@@ -89,20 +243,21 @@ void simplex()
 			{
 				simplex_table[i][j] = simplex_table[i][j] + mult_value * simplex_table[smallest_frac][j];
 			}
+			if (intermediate_tables)
+			{
+				fprintf(output_file, "$R_%d \\leftarrow R_%d + %.2f R_%d$ \\\\", i + 1, i + 1, mult_value, smallest_frac);
+				print_simplex_table(i, -1, 0);
+			}
+		}
+		if (intermediate_tables)
+		{
+			fprintf(output_file, "\\subsubsection*{Pivot Result}\n", pivoting);
+			print_simplex_table(-1, -1, 0);
+			fprintf(output_file, "\n\\newpage\n", pivoting);
 		}
 		safe++;
-		if (safe > 20)
+		if (safe > 50)
 			break;
-	}
-
-	// print table
-	for (int i = 0; i < table_rows; i++)
-	{
-		for (int j = 0; j < table_cols; j++)
-		{
-			g_print("%f  ", simplex_table[i][j]);
-		}
-		g_print("\n");
 	}
 }
 
@@ -164,6 +319,19 @@ void on_mode_radio_toggled(GtkToggleButton *toggle_button, gpointer user_data)
 	}
 }
 
+void on_intermediate_radio_toggled(GtkToggleButton *toggle_button, gpointer user_data)
+{
+	const gchar *name = gtk_buildable_get_name(GTK_BUILDABLE(toggle_button));
+
+	if (gtk_toggle_button_get_active(toggle_button))
+	{
+		if (g_strcmp0(name, "no_intermediate_radio") == 0)
+			intermediate_tables = 0;
+		else
+			intermediate_tables = 1;
+	}
+}
+
 GtkWidget *create_variable_widget(int var_id)
 {
 	GtkBuilder *builder = gtk_builder_new_from_file("objectSetupWidget.glade");
@@ -209,6 +377,7 @@ void on_continueBtn_variables(GtkButton *button, gpointer user_data) // Continue
 {
 	variable_amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(variables_spin));
 	constraint_amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(constraints_spin));
+	problem_name = gtk_entry_get_text(GTK_ENTRY(problem_input));
 	if (!variable_amount || !constraint_amount)
 	{
 		return;
@@ -281,20 +450,33 @@ void on_next_constraintBtn(GtkButton *button, gpointer user_data)
 	g_list_free(children);
 
 	// Create new constraint widgets
-	for (int i = 0; i < variable_amount; i++)
+	variable_names[variable_amount] = "Constant term (Right-Hand Side)";
+	for (int i = 0; i <= variable_amount; i++)
 	{
 		GtkWidget *object_widget = create_objective_variable_widget(i);
 		gtk_box_pack_start(GTK_BOX(constraints_container), object_widget, FALSE, FALSE, 5);
 	}
-	variable_names[variable_amount] = "Constant term (Right-Hand Side)";
-	GtkWidget *object_widget = create_objective_variable_widget(variable_amount);
-	gtk_box_pack_start(GTK_BOX(constraints_container), object_widget, FALSE, FALSE, 5);
+
 	gtk_widget_show_all(constraints_container);
 }
 
 void on_solveBtn(GtkButton *button, gpointer user_data)
 {
+	output_file = fopen("output.tex", "w");
+	if (output_file == NULL)
+	{
+		g_print("Failed to open LaTeX file");
+		return;
+	}
+	setup_latex();
+	print_problem_model();
 	simplex();
+	print_results();
+	fprintf(output_file, "\\end{document}\n");
+	fclose(output_file);
+
+	system("pdflatex output.tex");
+	system("evince --presentation output.pdf &");
 }
 
 int main(int argc, char *argv[])
@@ -313,6 +495,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
 	main_stack = GTK_WIDGET(gtk_builder_get_object(builder, "mainStack"));
+	problem_input = GTK_WIDGET(gtk_builder_get_object(builder, "problem_name"));
 	variables_spin = GTK_WIDGET(gtk_builder_get_object(builder, "variables_spin"));
 	constraints_spin = GTK_WIDGET(gtk_builder_get_object(builder, "constraints_spin"));
 	variables_container = GTK_WIDGET(gtk_builder_get_object(builder, "variables_container"));
