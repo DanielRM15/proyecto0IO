@@ -24,6 +24,7 @@ int variable_amount;
 int constraint_amount;
 int mode = 0;				 // 0 for max, 1 for min;
 int intermediate_tables = 0; // 1 yes, 0 no
+int is_degenerate = 0;		 // 0 no, 1 yes
 int constraint_page_count = 0;
 
 double **simplex_table;
@@ -69,7 +70,7 @@ void print_simplex_table(int highlight_row, int highlight_col, int print_fractio
 	for (int i = 0; i < variable_amount; i++)
 		fprintf(output_file, "& %s", variable_names[i]);
 	for (int i = 0; i < constraint_amount; i++)
-		fprintf(output_file, "& $s_%d$", i);
+		fprintf(output_file, "& $s_%d$", i + 1);
 	fprintf(output_file, "& b");
 	if (print_fractions)
 		fprintf(output_file, "& Frac");
@@ -203,11 +204,58 @@ void print_results()
 	}
 }
 
+void report_unbounded()
+{
+	fprintf(output_file, "\\newpage\n\\section*{Unbounded Problem!}\n");
+	fprintf(output_file, "This problema is unbounded. Please re-model it and try again!\n");
+}
+
+void check_degeneracy()
+{
+	for (int j = 0; j < variable_amount + constraint_amount; j++)
+	{
+		double var_value = 0;
+		int is_basic = 0;
+		for (int i = 1; i < table_rows; i++)
+		{
+			double val = simplex_table[i][j + 1];
+			if (fabs(val) < 1e-9)
+				val = 0.0;
+			if (val != 0.0)
+			{
+				if (fabs(val - 1.0) < 1e-9)
+				{
+					var_value = simplex_table[i][table_cols - 1];
+					is_basic = 1;
+					if (fabs(var_value) < 1e-9)
+						var_value = 0.0;
+				}
+				else
+				{
+					is_basic = 0;
+					break;
+				}
+			}
+		}
+		if (is_basic && fabs(var_value) < 1e-9) // var_value == 0
+		{
+			fprintf(output_file, "\n\\subsection*{Degenerate Base}\n");
+			if (j + 1 < variable_amount + 1)
+				fprintf(output_file, "The variable %s is part of the base but has a value of 0. \n", variable_names[j]);
+			else
+				fprintf(output_file, "The variable $s_%d$ is part of the base but has a value of 0. ", j - variable_amount + 1);
+			fprintf(output_file, "Therefore, this is a degenerate Basic Feasible Solution (BFS).\n\n", j - variable_amount + 1);
+			break;
+		}
+	}
+}
+
 void simplex()
 {
 	if (intermediate_tables)
 		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
 
+	is_degenerate = 0;
 	int safe = 0;
 	int pivoting = 0;
 	while (1)
@@ -255,8 +303,14 @@ void simplex()
 				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
 			if (frac < 0)
 				continue;
-			if (frac < simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
+			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
 				smallest_frac = i;
+		}
+		if (smallest_frac == 1 &&
+			simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] < 0)
+		{
+			report_unbounded();
+			return;
 		}
 		if (intermediate_tables)
 		{
@@ -290,16 +344,18 @@ void simplex()
 			}
 			if (intermediate_tables)
 			{
-				fprintf(output_file, "$R_%d \\leftarrow R_%d + %.2f R_%d$ \\\\", i + 1, i + 1, mult_value, smallest_frac);
+				fprintf(output_file, "$R_%d \\leftarrow R_%d + %.2f R_%d$ \\\\", i + 1, i + 1, mult_value, smallest_frac + 1);
 				print_simplex_table(i, -1, 0);
 			}
 		}
 		if (intermediate_tables)
 		{
-			fprintf(output_file, "\\subsubsection*{Pivot Result}\n", pivoting);
+			fprintf(output_file, "\\subsubsection*{Pivot Result}\n");
 			print_simplex_table(-1, -1, 0);
-			fprintf(output_file, "\n\\newpage\n", pivoting);
 		}
+		check_degeneracy();
+		if (intermediate_tables)
+			fprintf(output_file, "\n\\newpage\n");
 		safe++;
 		if (safe > 50)
 			break;
