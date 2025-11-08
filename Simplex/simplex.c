@@ -250,44 +250,47 @@ void check_degeneracy()
 	}
 }
 
-void simplex()
+void multiple_solutions(int pivoting)
 {
-	if (intermediate_tables)
-		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
-
-	is_degenerate = 0;
-	int safe = 0;
-	int pivoting = 0;
-	while (1)
+	// Check for multiple solutions
+	int is_basic = 1;
+	int pivot_col = 0;
+	for (int i = 0; i < variable_amount + constraint_amount; i++)
 	{
-		pivoting++;
-		int pivot_col = 1; // The most negative column (index, not value)
-		for (int i = 2; i < table_cols - 1; i++)
+		if (fabs(simplex_table[0][i + 1]) > 1e-9)
+			continue;
+		for (int j = 1; j < table_rows; j++)
 		{
-			if (mode == 0)
+			double val = simplex_table[j][i + 1];
+			if (fabs(val) < 1e-9)
+				val = 0.0;
+			if (val != 0.0)
 			{
-				if (simplex_table[0][i] < simplex_table[0][pivot_col])
-					pivot_col = i;
-			}
-			else
-			{
-				if (simplex_table[0][i] > simplex_table[0][pivot_col])
-					pivot_col = i;
+				if (fabs(val - 1.0) < 1e-9)
+				{
+					is_basic = 1;
+				}
+				else
+				{
+					is_basic = 0;
+					pivot_col = i + 1;
+					break;
+				}
 			}
 		}
+		if (!is_basic)
+			break;
+	}
 
-		if (mode == 0 && simplex_table[0][pivot_col] >= 0)
-			break;
-		if (mode == 1 && simplex_table[0][pivot_col] <= 0)
-			break;
+	// pivot again if possible
+	if (!is_basic)
+	{
+		fprintf(output_file, "\\newpage\n\\section*{Multiple Solutions}\n");
+		fprintf(output_file, "A basic variable has a 0 on its first row, allowing us to pivot again and find another optimal solution.\n\n");
 
 		if (intermediate_tables) // Print intermediate tables data
 		{
 			fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
-			if (mode)
-				fprintf(output_file, "\\subsection*{Most Positive}\n");
-			else
-				fprintf(output_file, "\\subsubsection*{Most Negative}\n");
 			fprintf(output_file, "Column %d (%.2f)\n", pivot_col + 1, simplex_table[0][pivot_col]);
 			print_simplex_table(0, pivot_col, 0);
 			fprintf(output_file, "\\subsubsection*{Fractions}\n");
@@ -356,10 +359,124 @@ void simplex()
 		check_degeneracy();
 		if (intermediate_tables)
 			fprintf(output_file, "\n\\newpage\n");
+		print_results();
+	}
+}
+
+void simplex()
+{
+	if (intermediate_tables)
+		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
+
+	is_degenerate = 0;
+	int safe = 0;
+	int pivoting = 0;
+	while (1)
+	{
+		pivoting++;
+		int pivot_col = 1; // The most negative column (index, not value)
+		for (int i = 2; i < table_cols - 1; i++)
+		{
+			if (mode == 0)
+			{
+				if (simplex_table[0][i] < simplex_table[0][pivot_col])
+					pivot_col = i;
+			}
+			else
+			{
+				if (simplex_table[0][i] > simplex_table[0][pivot_col])
+					pivot_col = i;
+			}
+		}
+
+		if (mode == 0 && simplex_table[0][pivot_col] >= 0)
+			break;
+		if (mode == 1 && simplex_table[0][pivot_col] <= 0)
+			break;
+
+		if (intermediate_tables) // Print intermediate tables data
+		{
+			fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
+			if (mode)
+				fprintf(output_file, "\\subsection*{Most Positive}\n");
+			else
+				fprintf(output_file, "\\subsubsection*{Most Negative}\n");
+			fprintf(output_file, "Column %d (%.2f)\n", pivot_col + 1, simplex_table[0][pivot_col]);
+			print_simplex_table(0, pivot_col, 0);
+			fprintf(output_file, "\\subsubsection*{Fractions}\n");
+		}
+
+		if (intermediate_tables)
+			print_simplex_table(-1, -1, pivot_col);
+		int smallest_frac = 1; // The smallest fraction row
+		int is_unbounded = 1;
+		for (int i = 1; i < table_rows; i++)
+		{
+			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
+			if (intermediate_tables)
+				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
+			if (frac < 0)
+				continue;
+			else
+				is_unbounded = 0;
+			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
+				smallest_frac = i;
+		}
+		if (is_unbounded)
+		{
+			report_unbounded();
+			return;
+		}
+		if (intermediate_tables)
+		{
+			fprintf(output_file, "\\subsubsection*{Pivot}\n");
+			print_simplex_table(smallest_frac, pivot_col, 0);
+		}
+
+		// Make a 1 on smallest frac cell
+		double div_value = simplex_table[smallest_frac][pivot_col];
+		for (int i = 0; i < table_cols; i++)
+		{
+			simplex_table[smallest_frac][i] = simplex_table[smallest_frac][i] / div_value;
+		}
+		if (intermediate_tables)
+		{
+			fprintf(output_file, "\\subsubsection*{Canonization}\n", pivoting);
+			fprintf(output_file, "$R_%d \\leftarrow R_%d/%.2f$ \\\\", smallest_frac + 1, smallest_frac + 1, div_value);
+			print_simplex_table(smallest_frac, -1, 0);
+		}
+
+		// Convert col to 0s
+		for (int i = 0; i < table_rows; i++)
+		{
+			if (i == smallest_frac)
+				continue;
+
+			double mult_value = -simplex_table[i][pivot_col];
+			for (int j = 0; j < table_cols; j++)
+			{
+				simplex_table[i][j] = simplex_table[i][j] + mult_value * simplex_table[smallest_frac][j];
+			}
+			if (intermediate_tables)
+			{
+				fprintf(output_file, "$R_%d \\leftarrow R_%d + %.2f R_%d$ \\\\", i + 1, i + 1, mult_value, smallest_frac + 1);
+				print_simplex_table(i, -1, 0);
+			}
+		}
+		if (intermediate_tables)
+		{
+			fprintf(output_file, "\\subsubsection*{Pivot Result}\n");
+			print_simplex_table(-1, -1, 0);
+		}
+		check_degeneracy();
+		if (intermediate_tables)
+			fprintf(output_file, "\n\\newpage\n");
 		safe++;
 		if (safe > 50)
 			break;
 	}
+	print_results();
+	multiple_solutions(pivoting);
 }
 
 void fill_simplex_row(int row) // Fills a row with coefficients from coefficient_widgets
@@ -572,7 +689,6 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 	setup_latex();
 	print_problem_model();
 	simplex();
-	print_results();
 	fprintf(output_file, "\\end{document}\n");
 	fclose(output_file);
 
