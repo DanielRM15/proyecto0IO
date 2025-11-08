@@ -159,7 +159,48 @@ void print_results()
 {
 	fprintf(output_file, "\\section*{Results}\n");
 	print_simplex_table(-1, -1, 0);
-	fprintf(output_file, "DESPUES TERMINO ESTO");
+	fprintf(output_file, "\n\\subsection*{Objective Value}\n");
+	fprintf(output_file, "Z = %.2f\n", simplex_table[0][table_cols - 1]);
+	fprintf(output_file, "\n\\subsection*{Variables}\n");
+	for (int i = 0; i < variable_amount; i++)
+	{
+		double var_value = 0;
+		for (int j = 0; j < constraint_amount + 1; j++)
+		{
+			if (simplex_table[j][i + 1] != 0)
+			{
+				if (simplex_table[j][i + 1] != 1)
+				{
+					var_value = 0;
+					break;
+				}
+				else
+					var_value = simplex_table[j][table_cols - 1];
+			}
+		}
+		fprintf(output_file, variable_names[i]);
+		fprintf(output_file, " = %.2f \\\\\n", var_value);
+	}
+	fprintf(output_file, "\n\\subsection*{Slack or Surplus}\n");
+	for (int i = 0; i < constraint_amount; i++)
+	{
+		double var_value = 0;
+		for (int j = 0; j < constraint_amount + 1; j++)
+		{
+			if (simplex_table[j][i + variable_amount + 1] != 0)
+			{
+				if (simplex_table[j][i + variable_amount + 1] != 1)
+				{
+					var_value = 0;
+					break;
+				}
+				else
+					var_value = simplex_table[j][table_cols - 1];
+			}
+		}
+		fprintf(output_file, "$s_%d$", i + 1);
+		fprintf(output_file, " = %.2f \\\\\n", var_value);
+	}
 }
 
 void simplex()
