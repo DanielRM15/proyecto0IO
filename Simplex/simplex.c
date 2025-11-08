@@ -128,7 +128,7 @@ void print_problem_model()
 	fprintf(output_file, "\n\\end{center}\nSubject to\n\\begin{center}\n");
 	for (int i = 1; i <= constraint_amount; i++)
 	{
-		for (int j = 0; j < variable_amount + constraint_amount; j++)
+		for (int j = 0; j < variable_amount; j++)
 		{
 			double val = simplex_table[i][j + 1];
 			if (val < 0)
@@ -245,7 +245,8 @@ void simplex()
 			fprintf(output_file, "\\subsubsection*{Fractions}\n");
 		}
 
-		print_simplex_table(-1, -1, pivot_col);
+		if (intermediate_tables)
+			print_simplex_table(-1, -1, pivot_col);
 		int smallest_frac = 1; // The smallest fraction row
 		for (int i = 1; i < table_rows; i++)
 		{
@@ -257,8 +258,11 @@ void simplex()
 			if (frac < simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
 				smallest_frac = i;
 		}
-		fprintf(output_file, "\\subsubsection*{Pivot}\n");
-		print_simplex_table(smallest_frac, pivot_col, 0);
+		if (intermediate_tables)
+		{
+			fprintf(output_file, "\\subsubsection*{Pivot}\n");
+			print_simplex_table(smallest_frac, pivot_col, 0);
+		}
 
 		// Make a 1 on smallest frac cell
 		double div_value = simplex_table[smallest_frac][pivot_col];
