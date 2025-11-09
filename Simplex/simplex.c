@@ -206,7 +206,7 @@ void print_results()
 
 void report_unbounded()
 {
-	fprintf(output_file, "\\newpage\n\\section*{Unbounded Problem!}\n");
+	fprintf(output_file, "\n\\section*{Unbounded Problem!}\n");
 	fprintf(output_file, "This problema is unbounded. Please re-model it and try again!\n");
 }
 
@@ -291,6 +291,10 @@ void multiple_solutions(int pivoting)
 		if (intermediate_tables) // Print intermediate tables data
 		{
 			fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
+			if (mode)
+				fprintf(output_file, "\\subsection*{Most Positive}\n");
+			else
+				fprintf(output_file, "\\subsubsection*{Most Negative}\n");
 			fprintf(output_file, "Column %d (%.2f)\n", pivot_col + 1, simplex_table[0][pivot_col]);
 			print_simplex_table(0, pivot_col, 0);
 			fprintf(output_file, "\\subsubsection*{Fractions}\n");
@@ -299,6 +303,7 @@ void multiple_solutions(int pivoting)
 		if (intermediate_tables)
 			print_simplex_table(-1, -1, pivot_col);
 		int smallest_frac = 1; // The smallest fraction row
+		int is_unbounded = 1;
 		for (int i = 1; i < table_rows; i++)
 		{
 			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
@@ -306,12 +311,15 @@ void multiple_solutions(int pivoting)
 				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
 			if (frac < 0)
 				continue;
-			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
+			else
+				is_unbounded = 0;
+			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] ||
+				simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] < 0)
 				smallest_frac = i;
 		}
-		if (smallest_frac == 1 &&
-			simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] < 0)
+		if (is_unbounded)
 		{
+			fprintf(output_file, "AAAAAAAAA \\\\");
 			report_unbounded();
 			return;
 		}
@@ -425,6 +433,7 @@ void simplex()
 		}
 		if (is_unbounded)
 		{
+			fprintf(output_file, "AAAAAAAAA \\\\");
 			report_unbounded();
 			return;
 		}
