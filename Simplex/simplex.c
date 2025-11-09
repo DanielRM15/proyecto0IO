@@ -419,7 +419,8 @@ void simplex()
 				continue;
 			else
 				is_unbounded = 0;
-			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col])
+			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] ||
+				simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] < 0)
 				smallest_frac = i;
 		}
 		if (is_unbounded)
@@ -606,7 +607,6 @@ void on_continueBtn_variables(GtkButton *button, gpointer user_data) // Continue
 		GtkWidget *object_widget = create_variable_widget(i);
 		gtk_box_pack_start(GTK_BOX(variables_container), object_widget, FALSE, FALSE, 5);
 	}
-
 	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page1");
 	gtk_widget_show_all(variables_container);
 }
@@ -621,7 +621,6 @@ void on_continueBtn_objective(GtkButton *button, gpointer user_data)
 		GtkWidget *object_widget = create_objective_variable_widget(i);
 		gtk_box_pack_start(GTK_BOX(objective_container), object_widget, FALSE, FALSE, 5);
 	}
-
 	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page2");
 	gtk_widget_show_all(objective_container);
 }
@@ -693,8 +692,13 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 	fclose(output_file);
 
 	system("pdflatex output.tex");
-	system("evince --presentation output.pdf &");
-	gtk_main_quit();
+	system("evince --presentation output.pdf");
+
+	for (int i = 0; i < table_rows; i++)
+		free(simplex_table[i]);
+	free(simplex_table);
+	simplex_table = NULL;
+	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page0");
 }
 
 void save_data_to_file(const char *filename)
@@ -862,7 +866,7 @@ void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
 													NULL);
 
 	// Set default filename
-	gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "simplex_data.smplx");
+	gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "LP_problem.smplx");
 
 	// Add file filter
 	GtkFileFilter *filter = gtk_file_filter_new();
