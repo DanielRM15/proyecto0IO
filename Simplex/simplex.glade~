@@ -652,6 +652,7 @@
                 <property name="receives-default">True</property>
                 <property name="margin-start">300</property>
                 <property name="margin-end">300</property>
+                <signal name="clicked" handler="on_saveBtn_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -719,6 +720,7 @@
                     <property name="receives-default">True</property>
                     <property name="margin-start">200</property>
                     <property name="margin-end">200</property>
+                    <signal name="clicked" handler="on_solveBtn" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>

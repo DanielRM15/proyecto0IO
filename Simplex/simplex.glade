@@ -193,6 +193,7 @@
                     <property name="can-focus">True</property>
                     <property name="receives-default">True</property>
                     <property name="margin-end">100</property>
+                    <signal name="clicked" handler="on_loadBtn_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -652,6 +653,7 @@
                 <property name="receives-default">True</property>
                 <property name="margin-start">300</property>
                 <property name="margin-end">300</property>
+                <signal name="clicked" handler="on_saveBtn_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

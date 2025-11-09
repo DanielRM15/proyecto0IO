@@ -694,6 +694,227 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 
 	system("pdflatex output.tex");
 	system("evince --presentation output.pdf &");
+	gtk_main_quit();
+}
+
+void save_data_to_file(const char *filename)
+{
+	FILE *file = fopen(filename, "w");
+	if (file == NULL)
+	{
+		return;
+	}
+
+	// Save metadata
+	fprintf(file, "problem=%s\n", problem_name);
+	fprintf(file, "var_amount=%d\n", variable_amount);
+	fprintf(file, "contraint_amount=%d\n", constraint_amount);
+	fprintf(file, "mode=%d\n", mode);
+
+	fprintf(file, "VARIABLES\n");
+	for (int i = 0; i < variable_amount; i++)
+	{
+		fprintf(file, "%s\n", variable_names[i]);
+	}
+	fprintf(file, "END_VARIABLES\n");
+
+	fprintf(file, "table_rows=%d\n", table_rows);
+	fprintf(file, "table_cols=%d\n", table_cols);
+	fprintf(file, "SIMPLEX_TABLE\n");
+	for (int i = 0; i < table_rows; i++)
+	{
+		fprintf(file, "START_ROW\n");
+		for (int j = 0; j < table_cols; j++)
+		{
+			fprintf(file, "%.2f\n", simplex_table[i][j]);
+		}
+		fprintf(file, "END_ROW\n");
+	}
+	fprintf(file, "END_SIMPLEX_TABLE\n");
+
+	fclose(file);
+}
+
+void load_data_from_file(const char *filename)
+{
+	FILE *file = fopen(filename, "r");
+	if (file == NULL)
+	{
+		return;
+	}
+
+	char line[512];
+	char trimmed[512];
+
+	while (fgets(line, sizeof(line), file) != NULL)
+	{
+		strncpy(trimmed, line, sizeof(trimmed));
+		trimmed[sizeof(trimmed) - 1] = '\0';
+		size_t l = strlen(trimmed);
+		if (l > 0 && trimmed[l - 1] == '\n')
+			trimmed[l - 1] = '\0';
+
+		if (strncmp(trimmed, "problem=", 8) == 0)
+		{
+			char *val = trimmed + 8;
+			if (problem_name)
+			{
+				problem_name = strdup(val);
+			}
+			else
+			{
+				problem_name = strdup(val);
+			}
+		}
+		else if (strncmp(trimmed, "var_amount=", 11) == 0)
+		{
+			sscanf(trimmed + 11, "%d", &variable_amount);
+		}
+		else if (strncmp(trimmed, "contraint_amount=", 17) == 0)
+		{
+			sscanf(trimmed + 17, "%d", &constraint_amount);
+		}
+		else if (strncmp(trimmed, "mode=", 5) == 0)
+		{
+			sscanf(trimmed + 5, "%d", &mode);
+		}
+		else if (strcmp(trimmed, "VARIABLES") == 0)
+		{
+			for (int i = 0; i < variable_amount; i++)
+			{
+				if (fgets(line, sizeof(line), file) == NULL)
+					break;
+				strncpy(trimmed, line, sizeof(trimmed));
+				trimmed[sizeof(trimmed) - 1] = '\0';
+				size_t ll = strlen(trimmed);
+				if (ll > 0 && trimmed[ll - 1] == '\n')
+					trimmed[ll - 1] = '\0';
+				variable_names[i] = strdup(trimmed);
+			}
+			if (fgets(line, sizeof(line), file) != NULL)
+			{
+			}
+		}
+		else if (strncmp(trimmed, "table_rows=", 11) == 0)
+		{
+			sscanf(trimmed + 11, "%d", &table_rows);
+		}
+		else if (strncmp(trimmed, "table_cols=", 11) == 0)
+		{
+			sscanf(trimmed + 11, "%d", &table_cols);
+		}
+		else if (strcmp(trimmed, "SIMPLEX_TABLE") == 0)
+		{
+			if (simplex_table)
+			{
+				for (int i = 0; i < table_rows; i++)
+				{
+					if (simplex_table[i])
+						free(simplex_table[i]);
+				}
+				free(simplex_table);
+				simplex_table = NULL;
+			}
+
+			simplex_table = malloc(table_rows * sizeof(*simplex_table));
+			for (int i = 0; i < table_rows; i++)
+				simplex_table[i] = malloc(table_cols * sizeof(double));
+
+			for (int i = 0; i < table_rows; i++)
+			{
+				if (fgets(line, sizeof(line), file) == NULL)
+					break;
+				while (strncmp(line, "START_ROW", 9) != 0)
+				{
+					if (fgets(line, sizeof(line), file) == NULL)
+						break;
+				}
+
+				for (int j = 0; j < table_cols; j++)
+				{
+					if (fgets(line, sizeof(line), file) == NULL)
+						break;
+					char tmp[128];
+					strncpy(tmp, line, sizeof(tmp));
+					tmp[sizeof(tmp) - 1] = '\0';
+					size_t lt = strlen(tmp);
+					if (lt > 0 && tmp[lt - 1] == '\n')
+						tmp[lt - 1] = '\0';
+					simplex_table[i][j] = atof(tmp);
+				}
+
+				if (fgets(line, sizeof(line), file) == NULL)
+					break;
+			}
+		}
+	}
+
+	fclose(file);
+}
+
+void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
+{
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Save Simplex Data",
+													GTK_WINDOW(main_window),
+													GTK_FILE_CHOOSER_ACTION_SAVE,
+													"_Cancel", GTK_RESPONSE_CANCEL,
+													"_Save", GTK_RESPONSE_ACCEPT,
+													NULL);
+
+	// Set default filename
+	gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "simplex_data.smplx");
+
+	// Add file filter
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "Simplex Files (*.smplx)");
+	gtk_file_filter_add_pattern(filter, "*.smplx");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (result == GTK_RESPONSE_ACCEPT)
+	{
+		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+		// Add .ksp extension if not present
+		if (!g_str_has_suffix(filename, ".smplx"))
+		{
+			char *new_filename = g_strdup_printf("%s.smplx", filename);
+			g_free(filename);
+			filename = new_filename;
+		}
+
+		save_data_to_file(filename);
+		g_free(filename);
+	}
+
+	gtk_widget_destroy(dialog);
+}
+
+void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
+{
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Load Simplex Data",
+													GTK_WINDOW(main_window),
+													GTK_FILE_CHOOSER_ACTION_OPEN,
+													"_Cancel", GTK_RESPONSE_CANCEL,
+													"_Load", GTK_RESPONSE_ACCEPT,
+													NULL);
+
+	// Add file filter
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "Simplex Files (*.smplx)");
+	gtk_file_filter_add_pattern(filter, "*.smplx");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (result == GTK_RESPONSE_ACCEPT)
+	{
+		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		load_data_from_file(filename);
+		g_free(filename);
+	}
+
+	gtk_widget_destroy(dialog);
+	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page4");
 }
 
 int main(int argc, char *argv[])
