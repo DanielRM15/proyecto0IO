@@ -204,10 +204,16 @@ void print_results()
 	}
 }
 
-void report_unbounded()
+void report_unbounded(char *var_name)
 {
 	fprintf(output_file, "\n\\section*{Unbounded Problem!}\n");
-	fprintf(output_file, "This problema is unbounded. Please re-model it and try again!\n");
+	if (mode)
+		fprintf(output_file, "This problem is unbounded. The variable %s can be infinitely decreased, making Z have an infinitely negative value.\n", var_name);
+	else
+		fprintf(output_file, "This problem is unbounded. The variable %s can be infinitely increased, making Z have an infinite value.\n", var_name);
+
+	fprintf(output_file, "This can be solved by adding restrictions that cap the value of %s.\n", var_name);
+	fprintf(output_file, "Please re-model it and try again!\n");
 }
 
 void check_degeneracy()
@@ -308,18 +314,27 @@ void multiple_solutions(int pivoting)
 		{
 			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
 			if (intermediate_tables)
-				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\\n", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
-			if (frac <= 1e-4)
+				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
+			if (simplex_table[i][table_cols - 1] < 0 || simplex_table[i][pivot_col] < 0)
 				continue;
 			else
 				is_unbounded = 0;
 			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] ||
-				simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] < 0)
+				simplex_table[smallest_frac][table_cols - 1] < 0 || simplex_table[smallest_frac][pivot_col] < 0)
 				smallest_frac = i;
 		}
 		if (is_unbounded)
 		{
-			report_unbounded();
+			char varbuf[12];
+			char *var_name;
+			if (pivot_col < variable_amount + 1)
+				var_name = variable_names[pivot_col - 1];
+			else
+			{
+				snprintf(varbuf, sizeof(varbuf), "$s_%d$", pivot_col - variable_amount);
+				var_name = varbuf;
+			}
+			report_unbounded(var_name);
 			return;
 		}
 		if (intermediate_tables)
@@ -434,7 +449,16 @@ void simplex()
 		}
 		if (is_unbounded)
 		{
-			report_unbounded();
+			char varbuf[12];
+			char *var_name;
+			if (pivot_col < variable_amount + 1)
+				var_name = variable_names[pivot_col - 1];
+			else
+			{
+				snprintf(varbuf, sizeof(varbuf), "$s_%d$", pivot_col - variable_amount);
+				var_name = varbuf;
+			}
+			report_unbounded(var_name);
 			return;
 		}
 		if (intermediate_tables)
