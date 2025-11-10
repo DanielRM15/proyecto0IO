@@ -308,8 +308,8 @@ void multiple_solutions(int pivoting)
 		{
 			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
 			if (intermediate_tables)
-				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
-			if (frac < 0)
+				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\\n", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
+			if (frac <= 1e-4)
 				continue;
 			else
 				is_unbounded = 0;
@@ -319,12 +319,13 @@ void multiple_solutions(int pivoting)
 		}
 		if (is_unbounded)
 		{
-			fprintf(output_file, "AAAAAAAAA \\\\");
 			report_unbounded();
 			return;
 		}
 		if (intermediate_tables)
 		{
+			fprintf(output_file, "Smallest fraction: %.2f", simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col]);
+			fprintf(output_file, " $\\rightarrow$ Pivot: row %d", smallest_frac + 1);
 			fprintf(output_file, "\\subsubsection*{Pivot}\n");
 			print_simplex_table(smallest_frac, pivot_col, 0);
 		}
@@ -423,22 +424,23 @@ void simplex()
 			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
 			if (intermediate_tables)
 				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
-			if (frac < 0)
+			if (simplex_table[i][table_cols - 1] < 0 || simplex_table[i][pivot_col] < 0)
 				continue;
 			else
 				is_unbounded = 0;
 			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] ||
-				simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] < 0)
+				simplex_table[smallest_frac][table_cols - 1] < 0 || simplex_table[smallest_frac][pivot_col] < 0)
 				smallest_frac = i;
 		}
 		if (is_unbounded)
 		{
-			fprintf(output_file, "AAAAAAAAA \\\\");
 			report_unbounded();
 			return;
 		}
 		if (intermediate_tables)
 		{
+			fprintf(output_file, "Smallest fraction: %.2f", simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col]);
+			fprintf(output_file, " $\\rightarrow$ Pivot: row %d", smallest_frac + 1);
 			fprintf(output_file, "\\subsubsection*{Pivot}\n");
 			print_simplex_table(smallest_frac, pivot_col, 0);
 		}
@@ -601,7 +603,7 @@ GtkWidget *create_objective_variable_widget(int var_id)
 	return elem;
 }
 
-void on_continueBtn_variables(GtkButton *button, gpointer user_data) // Continue button in variable names page
+void on_continueBtn_variables(GtkButton *button, gpointer user_data) // Continue button in first page
 {
 	variable_amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(variables_spin));
 	constraint_amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(constraints_spin));
@@ -611,6 +613,16 @@ void on_continueBtn_variables(GtkButton *button, gpointer user_data) // Continue
 		return;
 	}
 
+	// Remove all variable widgets
+	GList *children, *iter;
+	children = gtk_container_get_children(GTK_CONTAINER(variables_container));
+	for (iter = children; iter != NULL; iter = g_list_next(iter))
+	{
+		gtk_widget_destroy(GTK_WIDGET(iter->data));
+	}
+	g_list_free(children);
+
+	// Create new variable widgets
 	for (int i = 0; i < variable_amount; i++)
 	{
 		GtkWidget *object_widget = create_variable_widget(i);
@@ -625,6 +637,14 @@ void on_continueBtn_objective(GtkButton *button, gpointer user_data)
 	for (int i = 0; i < variable_amount; i++)
 		variable_names[i] = gtk_entry_get_text(GTK_ENTRY(variable_widgets[i]));
 
+	GList *children, *iter;
+	children = gtk_container_get_children(GTK_CONTAINER(objective_container));
+	for (iter = children; iter != NULL; iter = g_list_next(iter))
+	{
+		gtk_widget_destroy(GTK_WIDGET(iter->data));
+	}
+	g_list_free(children);
+
 	for (int i = 0; i < variable_amount; i++)
 	{
 		GtkWidget *object_widget = create_objective_variable_widget(i);
@@ -637,6 +657,15 @@ void on_continueBtn_objective(GtkButton *button, gpointer user_data)
 void on_continueBtn_constraints(GtkButton *button, gpointer user_data)
 {
 	fill_simplex_row(constraint_page_count);
+
+	GList *children, *iter;
+	children = gtk_container_get_children(GTK_CONTAINER(constraints_container));
+	for (iter = children; iter != NULL; iter = g_list_next(iter))
+	{
+		gtk_widget_destroy(GTK_WIDGET(iter->data));
+	}
+	g_list_free(children);
+
 	for (int i = 0; i < variable_amount; i++)
 	{
 		GtkWidget *object_widget = create_objective_variable_widget(i);
@@ -707,6 +736,10 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 		free(simplex_table[i]);
 	free(simplex_table);
 	simplex_table = NULL;
+
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(variables_spin), 1);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(constraints_spin), 1);
+	gtk_entry_set_text(GTK_ENTRY(problem_input), "");
 	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page0");
 }
 
