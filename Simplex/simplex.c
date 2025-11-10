@@ -292,15 +292,11 @@ void multiple_solutions(int pivoting)
 	if (!is_basic)
 	{
 		fprintf(output_file, "\\newpage\n\\section*{Multiple Solutions}\n");
-		fprintf(output_file, "A basic variable has a 0 on its first row, allowing us to pivot again and find another optimal solution.\n\n");
+		fprintf(output_file, "A non-basic variable has a 0 on its first row, allowing us to pivot again and find another optimal solution.\n\n");
 
 		if (intermediate_tables) // Print intermediate tables data
 		{
 			fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
-			if (mode)
-				fprintf(output_file, "\\subsection*{Most Positive}\n");
-			else
-				fprintf(output_file, "\\subsubsection*{Most Negative}\n");
 			fprintf(output_file, "Column %d (%.2f)\n", pivot_col + 1, simplex_table[0][pivot_col]);
 			print_simplex_table(0, pivot_col, 0);
 			fprintf(output_file, "\\subsubsection*{Fractions}\n");
@@ -981,10 +977,9 @@ void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
 		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 		load_data_from_file(filename);
 		g_free(filename);
+		gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page4");
 	}
-
 	gtk_widget_destroy(dialog);
-	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page4");
 }
 
 int main(int argc, char *argv[])
