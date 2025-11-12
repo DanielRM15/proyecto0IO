@@ -46,7 +46,7 @@ void setup_latex()
 			"    \\vspace*{3cm}\n"
 			"    {\\Huge \\textbf{Instituto Tecnológico de Costa Rica}} \\\\[2cm]\n"
 			"    {\\Large \\textbf{Operations Research - Semester II}} \\\\[2cm]\n"
-			"    {\\LARGE \\textbf{Knapsack Problem}} \\\\[3cm]\n"
+			"    {\\LARGE \\textbf{Simplex}} \\\\[3cm]\n"
 			"    {\\Large Members:} \\\\[0.5cm]\n"
 			"    {\\large Adrián Zamora Chavarría \\\\ Daniel Romero Murillo} \\\\[2cm]\n"
 			"    {\\large Date: \\today}\n"
@@ -705,11 +705,13 @@ void on_next_constraintBtn(GtkButton *button, gpointer user_data)
 	fill_simplex_row(constraint_page_count);
 	if (constraint_page_count >= constraint_amount)
 	{
+		g_print("AA");
 		gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page4");
 		return;
 	}
 	else
 	{
+		g_print("BB");
 		char title_text[50];
 		sprintf(title_text, "Constraint %d", constraint_page_count + 1);
 		gtk_label_set_text(GTK_LABEL(constraint_page_label), title_text);
@@ -737,6 +739,7 @@ void on_next_constraintBtn(GtkButton *button, gpointer user_data)
 
 void on_solveBtn(GtkButton *button, gpointer user_data)
 {
+	constraint_page_count = 0;
 	output_file = fopen("output.tex", "w");
 	if (output_file == NULL)
 	{

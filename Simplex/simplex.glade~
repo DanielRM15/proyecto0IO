@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2 -->
+<!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkAdjustment" id="adjustment1">
-    <property name="lower">1</property>
-    <property name="upper">20</property>
+    <property name="lower">2</property>
+    <property name="upper">15</property>
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment2">
-    <property name="lower">1</property>
-    <property name="upper">12</property>
+    <property name="lower">2</property>
+    <property name="upper">15</property>
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
@@ -108,7 +108,7 @@
                     <property name="margin-end">350</property>
                     <property name="text" translatable="yes">1</property>
                     <property name="adjustment">adjustment1</property>
-                    <property name="value">1</property>
+                    <property name="value">2</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -147,7 +147,7 @@
                     <property name="margin-end">350</property>
                     <property name="text" translatable="yes">1</property>
                     <property name="adjustment">adjustment2</property>
-                    <property name="value">1</property>
+                    <property name="value">2</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -193,6 +193,7 @@
                     <property name="can-focus">True</property>
                     <property name="receives-default">True</property>
                     <property name="margin-end">100</property>
+                    <signal name="clicked" handler="on_loadBtn_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
