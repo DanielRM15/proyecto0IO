@@ -19,6 +19,9 @@ GtkWidget *variable_widgets[15];
 GtkWidget *coefficient_widgets[15];
 char *variable_names[15];
 
+double *sol1;
+double *sol2;
+
 char *problem_name;
 int variable_amount;
 int constraint_amount;
@@ -258,6 +261,29 @@ void check_degeneracy()
 
 void multiple_solutions(int pivoting)
 {
+	sol1 = malloc(variable_amount * sizeof(double));
+	sol2 = malloc(variable_amount * sizeof(double));
+	
+	for (int i = 0; i < variable_amount; i++)
+	{
+		double var_value = 0;
+		for (int j = 0; j < constraint_amount + 1; j++)
+		{
+			if (simplex_table[j][i + 1] != 0)
+			{
+				if (simplex_table[j][i + 1] != 1)
+				{
+					var_value = 0;
+					break;
+				}
+				else
+					var_value = simplex_table[j][table_cols - 1];
+			}
+		}
+		sol1[i] = var_value;
+	}
+	
+	
 	// Check for multiple solutions
 	int is_basic = 1;
 	int pivot_col = 0;
@@ -380,6 +406,75 @@ void multiple_solutions(int pivoting)
 		if (intermediate_tables)
 			fprintf(output_file, "\n\\newpage\n");
 		print_results();
+		
+		for (int i = 0; i < variable_amount; i++)
+		{
+			double var_value = 0;
+			for (int j = 0; j < constraint_amount + 1; j++)
+			{
+				if (simplex_table[j][i + 1] != 0)
+				{
+					if (simplex_table[j][i + 1] != 1)
+					{
+						var_value = 0;
+						break;
+					}
+					else
+						var_value = simplex_table[j][table_cols - 1];
+				}
+			}
+			sol2[i] = var_value;
+		}
+		for (int i = 0; i < variable_amount; i++) 
+		{
+				g_print("s1 %d: %.2f\n", i, sol1[i]);
+				g_print("s2 %d: %.2f\n", i, sol2[i]);
+		}
+		fprintf(output_file, "\\newpage\n\\section*{More Solutions}\n");
+		fprintf(output_file, "$a \\times s1 + (1 - a) \\times s2$ \\\\\n");
+		double a = 0.3;
+		double s1[variable_amount];
+		double s2[variable_amount];
+		for (int i = 0; i < variable_amount; i++) 
+		{
+				s1[i] = sol1[i] * a;
+				s2[i] = (1 - a) * sol2[i];
+		}
+		fprintf(output_file, "Multiple solution 1: \\\\\n");
+		fprintf(output_file, "$a = 0.3$ \\\\\n");
+		for (int i = 0; i < variable_amount; i++) 
+		{
+				double x = s1[i] + s2[i];
+				fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
+		}
+		a = 0.5;
+		for (int i = 0; i < variable_amount; i++) 
+		{
+				s1[i] = sol1[i] * a;
+				s2[i] = (1 - a) * sol2[i];
+		}
+		fprintf(output_file, "Multiple solution 2: \\\\\n");
+		fprintf(output_file, "$a = 0.5$ \\\\\n");
+		for (int i = 0; i < variable_amount; i++) 
+		{
+				double x = s1[i] + s2[i];
+				fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
+		}
+		a = 0.7;
+		for (int i = 0; i < variable_amount; i++) 
+		{
+				s1[i] = sol1[i] * a;
+				s2[i] = (1 - a) * sol2[i];
+		}
+		fprintf(output_file, "Multiple solution 3: \\\\\n");
+		fprintf(output_file, "$a = 0.7$ \\\\\n");
+		for (int i = 0; i < variable_amount; i++) 
+		{
+				double x = s1[i] + s2[i];
+				fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
+		}
+		free(sol1);
+		free(sol2);
 	}
 }
 
