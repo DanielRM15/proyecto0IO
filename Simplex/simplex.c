@@ -6,18 +6,18 @@
 
 FILE *output_file;
 GtkWidget *main_window;
-GtkWidget *main_stack;
-GtkWidget *variables_container;
 GtkWidget *objective_container;
 GtkWidget *constraints_container;
 GtkWidget *problem_input; // problem name
 GtkWidget *variables_spin;
 GtkWidget *constraints_spin;
-GtkWidget *constraint_page_label;
-
-GtkWidget *variable_widgets[15];
-GtkWidget *coefficient_widgets[15];
+GtkWidget **variable_entries;
 char *variable_names[15];
+
+GtkWidget ***constraint_label_widgets = NULL;
+int current_constraints = 0;
+int current_variables = 0;
+GtkWidget ***spin_table = NULL;
 
 double *sol1;
 double *sol2;
@@ -26,7 +26,7 @@ char *problem_name;
 int variable_amount;
 int constraint_amount;
 int mode = 0;				 // 0 for max, 1 for min;
-int intermediate_tables = 0; // 1 yes, 0 no
+int intermediate_tables = 1; // 1 yes, 0 no
 int is_degenerate = 0;		 // 0 no, 1 yes
 int constraint_page_count = 0;
 
@@ -263,7 +263,7 @@ void multiple_solutions(int pivoting)
 {
 	sol1 = malloc(variable_amount * sizeof(double));
 	sol2 = malloc(variable_amount * sizeof(double));
-	
+
 	for (int i = 0; i < variable_amount; i++)
 	{
 		double var_value = 0;
@@ -282,8 +282,7 @@ void multiple_solutions(int pivoting)
 		}
 		sol1[i] = var_value;
 	}
-	
-	
+
 	// Check for multiple solutions
 	int is_basic = 1;
 	int pivot_col = 0;
@@ -406,7 +405,7 @@ void multiple_solutions(int pivoting)
 		if (intermediate_tables)
 			fprintf(output_file, "\n\\newpage\n");
 		print_results();
-		
+
 		for (int i = 0; i < variable_amount; i++)
 		{
 			double var_value = 0;
@@ -425,53 +424,48 @@ void multiple_solutions(int pivoting)
 			}
 			sol2[i] = var_value;
 		}
-		for (int i = 0; i < variable_amount; i++) 
-		{
-				g_print("s1 %d: %.2f\n", i, sol1[i]);
-				g_print("s2 %d: %.2f\n", i, sol2[i]);
-		}
 		fprintf(output_file, "\\newpage\n\\section*{More Solutions}\n");
 		fprintf(output_file, "$a \\times s1 + (1 - a) \\times s2$ \\\\\n");
 		double a = 0.3;
 		double s1[variable_amount];
 		double s2[variable_amount];
-		for (int i = 0; i < variable_amount; i++) 
+		for (int i = 0; i < variable_amount; i++)
 		{
-				s1[i] = sol1[i] * a;
-				s2[i] = (1 - a) * sol2[i];
+			s1[i] = sol1[i] * a;
+			s2[i] = (1 - a) * sol2[i];
 		}
 		fprintf(output_file, "Multiple solution 1: \\\\\n");
 		fprintf(output_file, "$a = 0.3$ \\\\\n");
-		for (int i = 0; i < variable_amount; i++) 
+		for (int i = 0; i < variable_amount; i++)
 		{
-				double x = s1[i] + s2[i];
-				fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
+			double x = s1[i] + s2[i];
+			fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
 		}
 		a = 0.5;
-		for (int i = 0; i < variable_amount; i++) 
+		for (int i = 0; i < variable_amount; i++)
 		{
-				s1[i] = sol1[i] * a;
-				s2[i] = (1 - a) * sol2[i];
+			s1[i] = sol1[i] * a;
+			s2[i] = (1 - a) * sol2[i];
 		}
 		fprintf(output_file, "Multiple solution 2: \\\\\n");
 		fprintf(output_file, "$a = 0.5$ \\\\\n");
-		for (int i = 0; i < variable_amount; i++) 
+		for (int i = 0; i < variable_amount; i++)
 		{
-				double x = s1[i] + s2[i];
-				fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
+			double x = s1[i] + s2[i];
+			fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
 		}
 		a = 0.7;
-		for (int i = 0; i < variable_amount; i++) 
+		for (int i = 0; i < variable_amount; i++)
 		{
-				s1[i] = sol1[i] * a;
-				s2[i] = (1 - a) * sol2[i];
+			s1[i] = sol1[i] * a;
+			s2[i] = (1 - a) * sol2[i];
 		}
 		fprintf(output_file, "Multiple solution 3: \\\\\n");
 		fprintf(output_file, "$a = 0.7$ \\\\\n");
-		for (int i = 0; i < variable_amount; i++) 
+		for (int i = 0; i < variable_amount; i++)
 		{
-				double x = s1[i] + s2[i];
-				fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
+			double x = s1[i] + s2[i];
+			fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
 		}
 		free(sol1);
 		free(sol2);
@@ -604,261 +598,6 @@ void simplex()
 	}
 	print_results();
 	multiple_solutions(pivoting);
-}
-
-void fill_simplex_row(int row) // Fills a row with coefficients from coefficient_widgets
-{
-	if (!simplex_table)
-	{
-		table_rows = constraint_amount + 1;
-		table_cols = 2 + variable_amount + constraint_amount;
-		simplex_table = malloc(table_rows * sizeof(*simplex_table));
-		for (int i = 0; i < table_rows; i++)
-			simplex_table[i] = malloc(table_cols * sizeof(double));
-	}
-
-	for (int j = 0; j < table_cols; j++)
-	{
-		if (j == 0) // First cell
-		{
-			if (row == 0)
-				simplex_table[row][j] = 1;
-			else
-				simplex_table[row][j] = 0;
-			continue;
-		}
-		if (j == table_cols - 1) // last cell
-		{
-			if (row == 0)
-				simplex_table[row][j] = 0;
-			else
-				simplex_table[row][j] = (double)gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[variable_amount]));
-			break;
-		}
-		if (j > variable_amount) // slack cells
-		{
-			if (row == j - variable_amount)
-				simplex_table[row][j] = 1;
-			else
-				simplex_table[row][j] = 0;
-			continue;
-		}
-
-		if (row == 0)
-			simplex_table[row][j] = (double)-gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[j - 1]));
-		else
-			simplex_table[row][j] = (double)gtk_spin_button_get_value(GTK_SPIN_BUTTON(coefficient_widgets[j - 1]));
-	}
-}
-
-void on_mode_radio_toggled(GtkToggleButton *toggle_button, gpointer user_data)
-{
-	const gchar *name = gtk_buildable_get_name(GTK_BUILDABLE(toggle_button));
-
-	if (gtk_toggle_button_get_active(toggle_button))
-	{
-		if (g_strcmp0(name, "maximize_radio") == 0)
-			mode = 0;
-		else
-			mode = 1;
-	}
-}
-
-void on_intermediate_radio_toggled(GtkToggleButton *toggle_button, gpointer user_data)
-{
-	const gchar *name = gtk_buildable_get_name(GTK_BUILDABLE(toggle_button));
-
-	if (gtk_toggle_button_get_active(toggle_button))
-	{
-		if (g_strcmp0(name, "no_intermediate_radio") == 0)
-			intermediate_tables = 0;
-		else
-			intermediate_tables = 1;
-	}
-}
-
-GtkWidget *create_variable_widget(int var_id)
-{
-	GtkBuilder *builder = gtk_builder_new_from_file("objectSetupWidget.glade");
-	GtkWidget *elem = GTK_WIDGET(gtk_builder_get_object(builder, "objectSetupWidget"));
-	g_object_ref(elem);
-
-	GtkWidget *title_label = GTK_WIDGET(gtk_builder_get_object(builder, "varLabel"));
-	if (title_label)
-	{
-		char title_text[50];
-		sprintf(title_text, "Variable %d", var_id + 1);
-		gtk_label_set_text(GTK_LABEL(title_label), title_text);
-	}
-
-	// Store references to the widgets
-	variable_widgets[var_id] = GTK_WIDGET(gtk_builder_get_object(builder, "name_txt"));
-	char default_name[6];
-	sprintf(default_name, "$x_%d$", var_id + 1);
-	gtk_entry_set_text(GTK_ENTRY(variable_widgets[var_id]), default_name);
-
-	g_object_unref(builder);
-	return elem;
-}
-
-GtkWidget *create_objective_variable_widget(int var_id)
-{
-	GtkBuilder *builder = gtk_builder_new_from_file("objectiveValueWidget.glade");
-	GtkWidget *elem = GTK_WIDGET(gtk_builder_get_object(builder, "objectiveValueWidget"));
-	g_object_ref(elem);
-
-	GtkWidget *title_label = GTK_WIDGET(gtk_builder_get_object(builder, "varLabel"));
-	if (title_label)
-		gtk_label_set_text(GTK_LABEL(title_label), variable_names[var_id]);
-
-	// Store references to the widgets
-	coefficient_widgets[var_id] = GTK_WIDGET(gtk_builder_get_object(builder, "value_spin"));
-
-	g_object_unref(builder);
-	return elem;
-}
-
-void on_continueBtn_variables(GtkButton *button, gpointer user_data) // Continue button in first page
-{
-	variable_amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(variables_spin));
-	constraint_amount = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(constraints_spin));
-	problem_name = gtk_entry_get_text(GTK_ENTRY(problem_input));
-	if (!variable_amount || !constraint_amount)
-	{
-		return;
-	}
-
-	// Remove all variable widgets
-	GList *children, *iter;
-	children = gtk_container_get_children(GTK_CONTAINER(variables_container));
-	for (iter = children; iter != NULL; iter = g_list_next(iter))
-	{
-		gtk_widget_destroy(GTK_WIDGET(iter->data));
-	}
-	g_list_free(children);
-
-	// Create new variable widgets
-	for (int i = 0; i < variable_amount; i++)
-	{
-		GtkWidget *object_widget = create_variable_widget(i);
-		gtk_box_pack_start(GTK_BOX(variables_container), object_widget, FALSE, FALSE, 5);
-	}
-	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page1");
-	gtk_widget_show_all(variables_container);
-}
-
-void on_continueBtn_objective(GtkButton *button, gpointer user_data)
-{
-	for (int i = 0; i < variable_amount; i++)
-		variable_names[i] = gtk_entry_get_text(GTK_ENTRY(variable_widgets[i]));
-
-	GList *children, *iter;
-	children = gtk_container_get_children(GTK_CONTAINER(objective_container));
-	for (iter = children; iter != NULL; iter = g_list_next(iter))
-	{
-		gtk_widget_destroy(GTK_WIDGET(iter->data));
-	}
-	g_list_free(children);
-
-	for (int i = 0; i < variable_amount; i++)
-	{
-		GtkWidget *object_widget = create_objective_variable_widget(i);
-		gtk_box_pack_start(GTK_BOX(objective_container), object_widget, FALSE, FALSE, 5);
-	}
-	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page2");
-	gtk_widget_show_all(objective_container);
-}
-
-void on_continueBtn_constraints(GtkButton *button, gpointer user_data)
-{
-	fill_simplex_row(constraint_page_count);
-
-	GList *children, *iter;
-	children = gtk_container_get_children(GTK_CONTAINER(constraints_container));
-	for (iter = children; iter != NULL; iter = g_list_next(iter))
-	{
-		gtk_widget_destroy(GTK_WIDGET(iter->data));
-	}
-	g_list_free(children);
-
-	for (int i = 0; i < variable_amount; i++)
-	{
-		GtkWidget *object_widget = create_objective_variable_widget(i);
-		gtk_box_pack_start(GTK_BOX(constraints_container), object_widget, FALSE, FALSE, 5);
-	}
-	variable_names[variable_amount] = "Constant term (Right-Hand Side)";
-	GtkWidget *object_widget = create_objective_variable_widget(variable_amount);
-	gtk_box_pack_start(GTK_BOX(constraints_container), object_widget, FALSE, FALSE, 5);
-
-	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page3");
-	gtk_widget_show_all(constraints_container);
-}
-
-void on_next_constraintBtn(GtkButton *button, gpointer user_data)
-{
-	constraint_page_count++;
-	fill_simplex_row(constraint_page_count);
-	if (constraint_page_count >= constraint_amount)
-	{
-		g_print("AA");
-		gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page4");
-		return;
-	}
-	else
-	{
-		g_print("BB");
-		char title_text[50];
-		sprintf(title_text, "Constraint %d", constraint_page_count + 1);
-		gtk_label_set_text(GTK_LABEL(constraint_page_label), title_text);
-	}
-
-	// Remove current constraint widgets
-	GList *children, *iter;
-	children = gtk_container_get_children(GTK_CONTAINER(constraints_container));
-	for (iter = children; iter != NULL; iter = g_list_next(iter))
-	{
-		gtk_widget_destroy(GTK_WIDGET(iter->data));
-	}
-	g_list_free(children);
-
-	// Create new constraint widgets
-	variable_names[variable_amount] = "Constant term (Right-Hand Side)";
-	for (int i = 0; i <= variable_amount; i++)
-	{
-		GtkWidget *object_widget = create_objective_variable_widget(i);
-		gtk_box_pack_start(GTK_BOX(constraints_container), object_widget, FALSE, FALSE, 5);
-	}
-
-	gtk_widget_show_all(constraints_container);
-}
-
-void on_solveBtn(GtkButton *button, gpointer user_data)
-{
-	constraint_page_count = 0;
-	output_file = fopen("output.tex", "w");
-	if (output_file == NULL)
-	{
-		g_print("Failed to open LaTeX file");
-		return;
-	}
-	setup_latex();
-	print_problem_model();
-	simplex();
-	fprintf(output_file, "\\end{document}\n");
-	fclose(output_file);
-
-	system("pdflatex output.tex");
-	system("evince --presentation output.pdf");
-
-	for (int i = 0; i < table_rows; i++)
-		free(simplex_table[i]);
-	free(simplex_table);
-	simplex_table = NULL;
-
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(variables_spin), 1);
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(constraints_spin), 1);
-	gtk_entry_set_text(GTK_ENTRY(problem_input), "");
-	gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page0");
 }
 
 void save_data_to_file(const char *filename)
@@ -1075,14 +814,304 @@ void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
 		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 		load_data_from_file(filename);
 		g_free(filename);
-		gtk_stack_set_visible_child_name(GTK_STACK(main_stack), "page4");
 	}
 	gtk_widget_destroy(dialog);
 }
 
+static void adapt_entry_width(GtkEditable *editable, gpointer user_data)
+{
+	const char *txt = gtk_entry_get_text(GTK_ENTRY(editable));
+	int len = strlen(txt);
+
+	if (len < 1)
+		len = 1;
+	gtk_entry_set_width_chars(GTK_ENTRY(editable), len);
+}
+
+// Update constraint labels when a variable name entry changes
+static void on_variable_name_changed(GtkEditable *editable, gpointer user_data)
+{
+	int var_index = GPOINTER_TO_INT(user_data);
+	const char *new_name = gtk_entry_get_text(GTK_ENTRY(editable));
+
+	if (!constraint_label_widgets)
+		return;
+
+	for (int c = 0; c < current_constraints; c++)
+	{
+		if (var_index >= current_variables)
+			continue;
+		GtkWidget *label = constraint_label_widgets[c][var_index];
+		if (!label)
+			continue;
+
+		gchar *label_text;
+		if (var_index < current_variables - 1)
+			label_text = g_strdup_printf("%s +", new_name);
+		else
+			label_text = g_strdup(new_name);
+
+		gtk_label_set_text(GTK_LABEL(label), label_text);
+		g_free(label_text);
+	}
+}
+
+void build_objective(void)
+{
+	int num_variables = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
+
+	GList *children = gtk_container_get_children(GTK_CONTAINER(objective_container));
+
+	int index = 0;
+	for (GList *iter = children; iter != NULL; iter = iter->next, index++)
+	{
+		if (index >= 2)
+		{
+			gtk_widget_destroy(GTK_WIDGET(iter->data));
+		}
+	}
+	g_list_free(children);
+
+	for (int i = 0; i < num_variables; ++i)
+	{
+
+		GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+		GtkWidget *coef_spin = gtk_spin_button_new_with_range(-99999, 99999, 1);
+		gtk_spin_button_set_digits(GTK_SPIN_BUTTON(coef_spin), 2);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(coef_spin), 1.00);
+		gtk_box_pack_start(GTK_BOX(row), coef_spin, FALSE, FALSE, 0);
+
+		if (spin_table && spin_table[0])
+			spin_table[0][i] = coef_spin;
+
+		gchar *default_name = g_strdup_printf("$x_%d$", i + 1);
+		GtkWidget *entry = gtk_entry_new();
+		gtk_entry_set_text(GTK_ENTRY(entry), default_name);
+		gtk_entry_set_has_frame(GTK_ENTRY(entry), FALSE);
+		g_signal_connect(entry, "changed", G_CALLBACK(adapt_entry_width), NULL);
+		g_signal_connect(entry, "changed", G_CALLBACK(on_variable_name_changed), GINT_TO_POINTER(i));
+		adapt_entry_width(GTK_EDITABLE(entry), NULL);
+		g_free(default_name);
+
+		gtk_box_pack_start(GTK_BOX(row), entry, FALSE, FALSE, 4);
+
+		variable_entries[i] = entry;
+
+		if (i < num_variables - 1)
+		{
+			GtkWidget *plus = gtk_label_new("+");
+			gtk_box_pack_start(GTK_BOX(row), plus, FALSE, FALSE, 4);
+		}
+		gtk_box_pack_start(GTK_BOX(objective_container), row, FALSE, FALSE, 4);
+	}
+	spin_table[0][num_variables] = NULL;
+	gtk_widget_show_all(objective_container);
+}
+
+void build_constraints()
+{
+	int num_constraints = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
+	int num_variables = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
+
+	GList *children = gtk_container_get_children(GTK_CONTAINER(constraints_container));
+	for (GList *iter = children; iter != NULL; iter = iter->next)
+	{
+		gtk_widget_destroy(GTK_WIDGET(iter->data));
+	}
+	g_list_free(children);
+
+	if (constraint_label_widgets != NULL)
+	{
+		for (int i = 0; i < current_constraints; i++)
+		{
+			if (constraint_label_widgets[i])
+				free(constraint_label_widgets[i]);
+		}
+		free(constraint_label_widgets);
+		constraint_label_widgets = NULL;
+	}
+
+	current_constraints = num_constraints;
+	current_variables = num_variables;
+
+	if (num_constraints > 0 && num_variables > 0)
+	{
+		constraint_label_widgets = malloc(sizeof(GtkWidget **) * num_constraints);
+		for (int c = 0; c < num_constraints; c++)
+		{
+			constraint_label_widgets[c] = malloc(sizeof(GtkWidget *) * num_variables);
+			for (int v = 0; v < num_variables; v++)
+				constraint_label_widgets[c][v] = NULL;
+		}
+	}
+
+	for (int c = 0; c < num_constraints; ++c)
+	{
+
+		GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+
+		for (int v = 0; v < num_variables; ++v)
+		{
+			GtkWidget *coef_spin = gtk_spin_button_new_with_range(-9999, 9999, 1);
+			gtk_spin_button_set_digits(GTK_SPIN_BUTTON(coef_spin), 2);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(coef_spin), 1.00);
+			gtk_box_pack_start(GTK_BOX(row), coef_spin, FALSE, FALSE, 0);
+
+			if (spin_table)
+				spin_table[c + 1][v] = coef_spin;
+
+			const char *var_name = gtk_entry_get_text(GTK_ENTRY(variable_entries[v]));
+
+			gchar *label_text;
+			if (v < num_variables - 1)
+				label_text = g_strdup_printf("%s +", var_name);
+			else
+				label_text = g_strdup(var_name);
+
+			GtkWidget *label = gtk_label_new(label_text);
+			g_free(label_text);
+
+			if (constraint_label_widgets && c < current_constraints && v < current_variables)
+				constraint_label_widgets[c][v] = label;
+
+			gtk_box_pack_start(GTK_BOX(row), label, FALSE, FALSE, 4);
+		}
+
+		GtkWidget *comp_combo = gtk_combo_box_text_new();
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(comp_combo), "<=");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(comp_combo), ">=");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(comp_combo), "=");
+		gtk_combo_box_set_active(GTK_COMBO_BOX(comp_combo), 0);
+		gtk_box_pack_start(GTK_BOX(row), comp_combo, FALSE, FALSE, 6);
+
+		GtkWidget *rhs_spin = gtk_spin_button_new_with_range(-99999, 99999, 1);
+		gtk_spin_button_set_digits(GTK_SPIN_BUTTON(rhs_spin), 2);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(rhs_spin), 0.00);
+		gtk_box_pack_start(GTK_BOX(row), rhs_spin, FALSE, FALSE, 0);
+
+		if (spin_table)
+			spin_table[c + 1][num_variables] = rhs_spin;
+
+		gtk_box_pack_start(GTK_BOX(constraints_container), row, FALSE, FALSE, 4);
+	}
+
+	gtk_widget_show_all(constraints_container);
+}
+
+void setup_input_page(void)
+{
+	int num_variables = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
+
+	int num_constraints = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
+
+	if (variable_entries != NULL)
+		free(variable_entries);
+	variable_entries = malloc(sizeof(GtkWidget *) * num_variables);
+
+	if (spin_table != NULL)
+	{
+		for (int r = 0; r < current_constraints + 1; r++)
+		{
+			if (spin_table[r])
+				free(spin_table[r]);
+		}
+		free(spin_table);
+		spin_table = NULL;
+	}
+
+	int rows = num_constraints + 1;
+	if (rows > 0 && num_variables > 0)
+	{
+		spin_table = malloc(sizeof(GtkWidget **) * rows);
+		for (int r = 0; r < rows; r++)
+		{
+			spin_table[r] = malloc(sizeof(GtkWidget *) * (num_variables + 1));
+			for (int c = 0; c < num_variables; c++)
+				spin_table[r][c] = NULL;
+		}
+	}
+
+	build_objective();
+	build_constraints();
+}
+
+void fill_simplex_table()
+{
+	table_rows = constraint_amount + 1;
+	table_cols = variable_amount + constraint_amount + 2;
+
+	simplex_table = malloc(table_rows * sizeof(double *));
+	for (int i = 0; i < table_rows; i++)
+		simplex_table[i] = calloc(table_cols, sizeof(double));
+
+	for (int i = 0; i < table_rows; i++)
+	{
+		for (int j = 1; j < table_cols; j++)
+		{
+			if (j <= variable_amount)
+			{
+				if (spin_table[i][j - 1] != NULL && i == 0)
+					simplex_table[i][j] = -1 * gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][j - 1]));
+				else if (spin_table[i][j - 1] != NULL)
+					simplex_table[i][j] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][j - 1]));
+			}
+			else if (j <= variable_amount + constraint_amount)
+			{
+				if (i == j - variable_amount)
+					simplex_table[i][j] = 1;
+			}
+			else if (j == table_cols - 1 && spin_table[i][variable_amount] != NULL)
+			{
+				simplex_table[i][j] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][variable_amount]));
+			}
+		}
+	}
+}
+
+void setup_simplex()
+{
+	variable_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
+	constraint_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
+
+	fill_simplex_table();
+
+	// Get variable names
+	for (int i = 0; i < variable_amount; i++)
+	{
+		const char *txt = gtk_entry_get_text(GTK_ENTRY(variable_entries[i]));
+		if (variable_names[i] != NULL)
+			free(variable_names[i]);
+		variable_names[i] = strdup(txt);
+	}
+}
+
+void on_solveBtn(GtkButton *button, gpointer user_data)
+{
+	output_file = fopen("output.tex", "w");
+	if (output_file == NULL)
+	{
+		g_print("Failed to open LaTeX file");
+		return;
+	}
+	problem_name = gtk_entry_get_text(GTK_ENTRY(problem_input));
+	setup_simplex();
+	setup_latex();
+	print_problem_model();
+	simplex();
+	fprintf(output_file, "\\end{document}\n");
+	fclose(output_file);
+
+	system("pdflatex output.tex");
+	system("evince --presentation output.pdf &");
+
+	for (int i = 0; i < table_rows; i++)
+		free(simplex_table[i]);
+	free(simplex_table);
+	simplex_table = NULL;
+}
+
 int main(int argc, char *argv[])
 {
-	// simplex();
 	gtk_init(&argc, &argv);
 
 	// GtkBuilder *builder = gtk_builder_new_from_file("Simplex/simplex.glade"); // Si se abre desde el menu
@@ -1095,19 +1124,13 @@ int main(int argc, char *argv[])
 	// exit
 	g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-	main_stack = GTK_WIDGET(gtk_builder_get_object(builder, "mainStack"));
 	problem_input = GTK_WIDGET(gtk_builder_get_object(builder, "problem_name"));
 	variables_spin = GTK_WIDGET(gtk_builder_get_object(builder, "variables_spin"));
 	constraints_spin = GTK_WIDGET(gtk_builder_get_object(builder, "constraints_spin"));
-	variables_container = GTK_WIDGET(gtk_builder_get_object(builder, "variables_container"));
 	objective_container = GTK_WIDGET(gtk_builder_get_object(builder, "objective_container"));
 	constraints_container = GTK_WIDGET(gtk_builder_get_object(builder, "constraints_container"));
-	constraint_page_label = GTK_WIDGET(gtk_builder_get_object(builder, "constraint_label"));
 
-	GtkWidget *problem_input; // problem name
-	GtkWidget *variables_spin;
-	GtkWidget *constraints_spin;
-
+	setup_input_page();
 	gtk_widget_show_all(main_window);
 
 	gtk_main();

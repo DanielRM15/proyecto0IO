@@ -17,202 +17,202 @@
     \vfill
 \end{titlepage}
 \newpage
-\section*{6}
+\section*{puertas ventanas}
 Maximize
 \begin{center}
-Z = 2.00$x_1$ - 1.00$x_2$ + 1.00$x_3$ 
+Z = 3.00$x_1$ + 5.00$x_2$ 
 \end{center}
 Subject to
 \begin{center}
-3.00$x_1$ + 1.00$x_2$ + 1.00$x_3$ $\leq$ 60.00 \\
-1.00$x_1$ - 1.00$x_2$ + 2.00$x_3$ $\leq$ 10.00 \\
-1.00$x_1$ + 1.00$x_2$ - 1.00$x_3$ $\leq$ 20.00 \\
+1.00$x_1$ + 0.00$x_2$ $\leq$ 4.00 \\
+0.00$x_1$ + 2.00$x_2$ $\leq$ 12.00 \\
+3.00$x_1$ + 2.00$x_2$ $\leq$ 18.00 \\
 \end{center}
 Simplex Table
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& -2.00& 1.00& -1.00& 0.00& 0.00& 0.00& 0.00\\
-& 0.00& 3.00& 1.00& 1.00& 1.00& 0.00& 0.00& 60.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 1.00& 1.00& -1.00& 0.00& 0.00& 1.00& 20.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& -5.00& 0.00& 0.00& 0.00& 0.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 2.00& 0.00& 1.00& 0.00& 12.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
 \newpage
 \section*{Intermediate Tables}
 \subsection*{Pivoting 1}\subsubsection*{Most Negative}
-Column 2 (-2.00)
+Column 3 (-5.00)
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& \cellcolor{cyan!30} -2.00& 1.00& -1.00& 0.00& 0.00& 0.00& 0.00\\
-& 0.00& 3.00& 1.00& 1.00& 1.00& 0.00& 0.00& 60.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 1.00& 1.00& -1.00& 0.00& 0.00& 1.00& 20.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& \cellcolor{cyan!30} -5.00& 0.00& 0.00& 0.00& 0.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 2.00& 0.00& 1.00& 0.00& 12.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
 \subsubsection*{Fractions}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
-& 1.00& -2.00& 1.00& -1.00& 0.00& 0.00& 0.00& 0.00& \\
-& 0.00& 3.00& 1.00& 1.00& 1.00& 0.00& 0.00& 60.00& 20.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00& 10.00\\
-& 0.00& 1.00& 1.00& -1.00& 0.00& 0.00& 1.00& 20.00& 20.00\\
+\begin{tabular}{c|rrrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
+& 0.00& -3.00& -5.00& 0.00& 0.00& 0.00& 0.00& \\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00& inf\\
+& 0.00& 0.00& 2.00& 0.00& 1.00& 0.00& 12.00& 6.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00& 9.00\\
 \end{tabular}
 \end{table}
-$60.00 / 3.00 = 20.00$ \\$10.00 / 1.00 = 10.00$ \\$20.00 / 1.00 = 20.00$ \\Smallest fraction: 10.00 $\rightarrow$ Pivot: row 3\subsubsection*{Pivot}
+$4.00 / 0.00 = inf$ \\$12.00 / 2.00 = 6.00$ \\$18.00 / 2.00 = 9.00$ \\Smallest fraction: 6.00 $\rightarrow$ Pivot: row 3\subsubsection*{Pivot}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& -2.00& 1.00& -1.00& 0.00& 0.00& 0.00& 0.00\\
-& 0.00& 3.00& 1.00& 1.00& 1.00& 0.00& 0.00& 60.00\\
-& 0.00& \cellcolor{cyan!30} 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 1.00& 1.00& -1.00& 0.00& 0.00& 1.00& 20.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& -5.00& 0.00& 0.00& 0.00& 0.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& \cellcolor{cyan!30} 2.00& 0.00& 1.00& 0.00& 12.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
 \subsubsection*{Canonization}
-$R_3 \leftarrow R_3/1.00$ \\\begin{table}[H]
+$R_3 \leftarrow R_3/2.00$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& -2.00& 1.00& -1.00& 0.00& 0.00& 0.00& 0.00\\
-& 0.00& 3.00& 1.00& 1.00& 1.00& 0.00& 0.00& 60.00\\
-& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} -1.00& \cellcolor{cyan!30} 2.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 10.00\\
-& 0.00& 1.00& 1.00& -1.00& 0.00& 0.00& 1.00& 20.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& -5.00& 0.00& 0.00& 0.00& 0.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.50& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 6.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
-$R_1 \leftarrow R_1 + 2.00 R_3$ \\\begin{table}[H]
+$R_1 \leftarrow R_1 + 5.00 R_3$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} -1.00& \cellcolor{cyan!30} 3.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 2.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 20.00\\
-& 0.00& 3.00& 1.00& 1.00& 1.00& 0.00& 0.00& 60.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 1.00& 1.00& -1.00& 0.00& 0.00& 1.00& 20.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} -3.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 2.50& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 30.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
-$R_2 \leftarrow R_2 + -3.00 R_3$ \\\begin{table}[H]
+$R_2 \leftarrow R_2 + -0.00 R_3$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& -1.00& 3.00& 0.00& 2.00& 0.00& 20.00\\
-& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 4.00& \cellcolor{cyan!30} -5.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} -3.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 30.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 1.00& 1.00& -1.00& 0.00& 0.00& 1.00& 20.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& 0.00& 0.00& 2.50& 0.00& 30.00\\
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
-$R_4 \leftarrow R_4 + -1.00 R_3$ \\\begin{table}[H]
+$R_4 \leftarrow R_4 + -2.00 R_3$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& -1.00& 3.00& 0.00& 2.00& 0.00& 20.00\\
-& 0.00& 0.00& 4.00& -5.00& 1.00& -3.00& 0.00& 30.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 2.00& \cellcolor{cyan!30} -3.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} -1.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 10.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& 0.00& 0.00& 2.50& 0.00& 30.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 3.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} -1.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 6.00\\
 \end{tabular}
 \end{table}
 \subsubsection*{Pivot Result}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& -1.00& 3.00& 0.00& 2.00& 0.00& 20.00\\
-& 0.00& 0.00& 4.00& -5.00& 1.00& -3.00& 0.00& 30.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 0.00& 2.00& -3.00& 0.00& -1.00& 1.00& 10.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& 0.00& 0.00& 2.50& 0.00& 30.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 3.00& 0.00& 0.00& -1.00& 1.00& 6.00\\
 \end{tabular}
 \end{table}
 
 \newpage
 \subsection*{Pivoting 2}\subsubsection*{Most Negative}
-Column 3 (-1.00)
+Column 2 (-3.00)
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& \cellcolor{cyan!30} -1.00& 3.00& 0.00& 2.00& 0.00& 20.00\\
-& 0.00& 0.00& 4.00& -5.00& 1.00& -3.00& 0.00& 30.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 0.00& 2.00& -3.00& 0.00& -1.00& 1.00& 10.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& \cellcolor{cyan!30} -3.00& 0.00& 0.00& 2.50& 0.00& 30.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 3.00& 0.00& 0.00& -1.00& 1.00& 6.00\\
 \end{tabular}
 \end{table}
 \subsubsection*{Fractions}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
-& 1.00& 0.00& -1.00& 3.00& 0.00& 2.00& 0.00& 20.00& \\
-& 0.00& 0.00& 4.00& -5.00& 1.00& -3.00& 0.00& 30.00& 7.50\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00& -10.00\\
-& 0.00& 0.00& 2.00& -3.00& 0.00& -1.00& 1.00& 10.00& 5.00\\
+\begin{tabular}{c|rrrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
+& 0.00& -3.00& 0.00& 0.00& 2.50& 0.00& 30.00& \\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00& inf\\
+& 0.00& 3.00& 0.00& 0.00& -1.00& 1.00& 6.00& 2.00\\
 \end{tabular}
 \end{table}
-$30.00 / 4.00 = 7.50$ \\$10.00 / -1.00 = -10.00$ \\$10.00 / 2.00 = 5.00$ \\Smallest fraction: 5.00 $\rightarrow$ Pivot: row 4\subsubsection*{Pivot}
+$4.00 / 1.00 = 4.00$ \\$6.00 / 0.00 = inf$ \\$6.00 / 3.00 = 2.00$ \\Smallest fraction: 2.00 $\rightarrow$ Pivot: row 4\subsubsection*{Pivot}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& -1.00& 3.00& 0.00& 2.00& 0.00& 20.00\\
-& 0.00& 0.00& 4.00& -5.00& 1.00& -3.00& 0.00& 30.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 0.00& \cellcolor{cyan!30} 2.00& -3.00& 0.00& -1.00& 1.00& 10.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& 0.00& 0.00& 2.50& 0.00& 30.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& \cellcolor{cyan!30} 3.00& 0.00& 0.00& -1.00& 1.00& 6.00\\
 \end{tabular}
 \end{table}
 \subsubsection*{Canonization}
-$R_4 \leftarrow R_4/2.00$ \\\begin{table}[H]
+$R_4 \leftarrow R_4/3.00$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& -1.00& 3.00& 0.00& 2.00& 0.00& 20.00\\
-& 0.00& 0.00& 4.00& -5.00& 1.00& -3.00& 0.00& 30.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} -1.50& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} -0.50& \cellcolor{cyan!30} 0.50& \cellcolor{cyan!30} 5.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& 0.00& 0.00& 2.50& 0.00& 30.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} -0.33& \cellcolor{cyan!30} 0.33& \cellcolor{cyan!30} 2.00\\
 \end{tabular}
 \end{table}
-$R_1 \leftarrow R_1 + 1.00 R_4$ \\\begin{table}[H]
+$R_1 \leftarrow R_1 + 3.00 R_4$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.50& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.50& \cellcolor{cyan!30} 0.50& \cellcolor{cyan!30} 25.00\\
-& 0.00& 0.00& 4.00& -5.00& 1.00& -3.00& 0.00& 30.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 0.00& 1.00& -1.50& 0.00& -0.50& 0.50& 5.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.50& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 36.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
 \end{tabular}
 \end{table}
-$R_2 \leftarrow R_2 + -4.00 R_4$ \\\begin{table}[H]
+$R_2 \leftarrow R_2 + -1.00 R_4$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& 0.00& 1.50& 0.00& 1.50& 0.50& 25.00\\
-& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} -1.00& \cellcolor{cyan!30} -2.00& \cellcolor{cyan!30} 10.00\\
-& 0.00& 1.00& -1.00& 2.00& 0.00& 1.00& 0.00& 10.00\\
-& 0.00& 0.00& 1.00& -1.50& 0.00& -0.50& 0.50& 5.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& 0.00& 0.00& 0.00& 1.50& 1.00& 36.00\\
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.33& \cellcolor{cyan!30} -0.33& \cellcolor{cyan!30} 2.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
 \end{tabular}
 \end{table}
-$R_3 \leftarrow R_3 + 1.00 R_4$ \\\begin{table}[H]
+$R_3 \leftarrow R_3 + -0.00 R_4$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& 0.00& 1.50& 0.00& 1.50& 0.50& 25.00\\
-& 0.00& 0.00& 0.00& 1.00& 1.00& -1.00& -2.00& 10.00\\
-& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.50& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.50& \cellcolor{cyan!30} 0.50& \cellcolor{cyan!30} 15.00\\
-& 0.00& 0.00& 1.00& -1.50& 0.00& -0.50& 0.50& 5.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& 0.00& 0.00& 0.00& 1.50& 1.00& 36.00\\
+& 0.00& 0.00& 0.00& 1.00& 0.33& -0.33& 2.00\\
+& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.50& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 6.00\\
+& 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
 \end{tabular}
 \end{table}
 \subsubsection*{Pivot Result}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& 0.00& 1.50& 0.00& 1.50& 0.50& 25.00\\
-& 0.00& 0.00& 0.00& 1.00& 1.00& -1.00& -2.00& 10.00\\
-& 0.00& 1.00& 0.00& 0.50& 0.00& 0.50& 0.50& 15.00\\
-& 0.00& 0.00& 1.00& -1.50& 0.00& -0.50& 0.50& 5.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& 0.00& 0.00& 0.00& 1.50& 1.00& 36.00\\
+& 0.00& 0.00& 0.00& 1.00& 0.33& -0.33& 2.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
 \end{tabular}
 \end{table}
 
@@ -220,25 +220,24 @@ $R_3 \leftarrow R_3 + 1.00 R_4$ \\\begin{table}[H]
 \section*{Results}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1.00& 0.00& 0.00& 1.50& 0.00& 1.50& 0.50& 25.00\\
-& 0.00& 0.00& 0.00& 1.00& 1.00& -1.00& -2.00& 10.00\\
-& 0.00& 1.00& 0.00& 0.50& 0.00& 0.50& 0.50& 15.00\\
-& 0.00& 0.00& 1.00& -1.50& 0.00& -0.50& 0.50& 5.00\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& 0.00& 0.00& 0.00& 1.50& 1.00& 36.00\\
+& 0.00& 0.00& 0.00& 1.00& 0.33& -0.33& 2.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
 \end{tabular}
 \end{table}
 
 \subsection*{Objective Value}
-Z = 25.00
+Z = 36.00
 
 \subsection*{Variables}
-$x_1$ = 15.00 \\
-$x_2$ = 5.00 \\
-$x_3$ = 0.00 \\
+$x_1$ = 2.00 \\
+$x_2$ = 6.00 \\
 
 \subsection*{Slack or Surplus}
-$s_1$ = 10.00 \\
+$s_1$ = 2.00 \\
 $s_2$ = 0.00 \\
 $s_3$ = 0.00 \\
 \end{document}
