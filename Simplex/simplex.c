@@ -19,19 +19,24 @@ GtkWidget ***constraint_label_widgets = NULL;
 int current_constraints = 0;
 int current_variables = 0;
 GtkWidget ***spin_table = NULL;
+GtkWidget **constraint_combos = NULL; // combos with constraint type (<=, >=, =)
 
 double *sol1;
 double *sol2;
 
 char *problem_name;
-int variable_amount;
-int constraint_amount;
+int variable_amount;		 // LP model variables amount
+int constraint_amount;		 // LP model constraints amount
+int slackv_amount;			 // slack variables amount
+int excessv_amount;			 // excess variables amount
+int artificialv_amount;		 // artificial variables amount
 int mode = 0;				 // 0 for max, 1 for min;
 int intermediate_tables = 1; // 1 yes, 0 no
 int is_degenerate = 0;		 // 0 no, 1 yes
 int constraint_page_count = 0;
 
 double **simplex_table;
+mpfr_t M;
 int table_cols;
 int table_rows;
 
@@ -59,6 +64,47 @@ void setup_latex()
 			"\\newpage\n");
 }
 
+void print_with_M(FILE *f, mpfr_t x)
+{
+	mpfr_t abs_x, abs_M, k, remainder, tmp;
+	mpfr_inits2(mpfr_get_prec(x), abs_x, abs_M, k, remainder, tmp, NULL);
+
+	mpfr_abs(abs_x, x, MPFR_RNDN);
+	mpfr_abs(abs_M, M, MPFR_RNDN);
+
+	mpfr_t thousand;
+	mpfr_init_set_ui(thousand, 1000, MPFR_RNDN);
+	if (mpfr_cmp(abs_x, thousand) < 0)
+	{
+		mpfr_clear(thousand);
+		mpfr_fprintf(f, "%.2Rf", x);
+		mpfr_clears(abs_x, abs_M, k, remainder, tmp, NULL);
+		return;
+	}
+	mpfr_clear(thousand);
+
+	mpfr_div(k, x, M, MPFR_RNDN);
+
+	mpfr_floor(tmp, k);
+	mpfr_mul(remainder, tmp, M, MPFR_RNDN);
+	mpfr_sub(remainder, x, remainder, MPFR_RNDN);
+
+	if (mpfr_cmp_ui(remainder, 0) != 0)
+	{
+		mpfr_fprintf(f, "%.2Rf ", remainder);
+		if (mpfr_cmp_ui(tmp, 0) != 0)
+			fprintf(f, "+ ");
+	}
+
+	if (mpfr_cmp_ui(tmp, 1) == 0)
+		fprintf(f, "M");
+	else if (mpfr_cmp_si(tmp, -1) == 0)
+		fprintf(f, "-M");
+	else if (mpfr_cmp_ui(tmp, 0) != 0)
+		mpfr_fprintf(f, "%.2RfM", tmp);
+	mpfr_clears(abs_x, abs_M, k, remainder, tmp, NULL);
+}
+
 void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, int print_fractions)
 {
 	fprintf(output_file, "\\begin{table}[H]\n");
@@ -73,8 +119,12 @@ void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, i
 	fprintf(output_file, "& Z ");
 	for (int i = 0; i < variable_amount; i++)
 		fprintf(output_file, "& %s", variable_names[i]);
-	for (int i = 0; i < constraint_amount; i++)
+	for (int i = 0; i < slackv_amount; i++)
 		fprintf(output_file, "& $s_%d$", i + 1);
+	for (int i = 0; i < excessv_amount; i++)
+		fprintf(output_file, "& $e_%d$", i + 1);
+	for (int i = 0; i < artificialv_amount; i++)
+		fprintf(output_file, "& $a_%d$", i + 1);
 	fprintf(output_file, "& b");
 	if (print_fractions)
 		fprintf(output_file, "& Frac");
@@ -91,7 +141,8 @@ void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, i
 			{
 				fprintf(output_file, "\\cellcolor{cyan!30} ");
 			}
-			mpfr_fprintf(output_file, "%.2Rf", table[i][j]);
+			// mpfr_fprintf(output_file, "%.2Rf", table[i][j]);
+			print_with_M(output_file, table[i][j]);
 		}
 		if (print_fractions)
 		{
@@ -247,6 +298,8 @@ void report_unbounded(char *var_name)
 	fprintf(output_file, "Please re-model it and try again!\n");
 }
 
+// TODO: update this function to use mpfr **table, instead of simplex_table;
+//  THIS FUNCTION DOESNT WORK
 void check_degeneracy()
 {
 	for (int j = 0; j < variable_amount + constraint_amount; j++)
@@ -465,224 +518,6 @@ void simplex(mpfr_t **table)
 	print_results(table);
 }
 
-void save_data_to_file(const char *filename)
-{
-	FILE *file = fopen(filename, "w");
-	if (file == NULL)
-	{
-		return;
-	}
-
-	// Save metadata
-	fprintf(file, "problem=%s\n", problem_name);
-	fprintf(file, "var_amount=%d\n", variable_amount);
-	fprintf(file, "contraint_amount=%d\n", constraint_amount);
-	fprintf(file, "mode=%d\n", mode);
-
-	fprintf(file, "VARIABLES\n");
-	for (int i = 0; i < variable_amount; i++)
-	{
-		fprintf(file, "%s\n", variable_names[i]);
-	}
-	fprintf(file, "END_VARIABLES\n");
-
-	fprintf(file, "table_rows=%d\n", table_rows);
-	fprintf(file, "table_cols=%d\n", table_cols);
-	fprintf(file, "SIMPLEX_TABLE\n");
-	for (int i = 0; i < table_rows; i++)
-	{
-		fprintf(file, "START_ROW\n");
-		for (int j = 0; j < table_cols; j++)
-		{
-			fprintf(file, "%.2f\n", simplex_table[i][j]);
-		}
-		fprintf(file, "END_ROW\n");
-	}
-	fprintf(file, "END_SIMPLEX_TABLE\n");
-
-	fclose(file);
-}
-
-void load_data_from_file(const char *filename)
-{
-	FILE *file = fopen(filename, "r");
-	if (file == NULL)
-	{
-		return;
-	}
-
-	char line[512];
-	char trimmed[512];
-
-	while (fgets(line, sizeof(line), file) != NULL)
-	{
-		strncpy(trimmed, line, sizeof(trimmed));
-		trimmed[sizeof(trimmed) - 1] = '\0';
-		size_t l = strlen(trimmed);
-		if (l > 0 && trimmed[l - 1] == '\n')
-			trimmed[l - 1] = '\0';
-
-		if (strncmp(trimmed, "problem=", 8) == 0)
-		{
-			char *val = trimmed + 8;
-			if (problem_name)
-			{
-				problem_name = strdup(val);
-			}
-			else
-			{
-				problem_name = strdup(val);
-			}
-		}
-		else if (strncmp(trimmed, "var_amount=", 11) == 0)
-		{
-			sscanf(trimmed + 11, "%d", &variable_amount);
-		}
-		else if (strncmp(trimmed, "contraint_amount=", 17) == 0)
-		{
-			sscanf(trimmed + 17, "%d", &constraint_amount);
-		}
-		else if (strncmp(trimmed, "mode=", 5) == 0)
-		{
-			sscanf(trimmed + 5, "%d", &mode);
-		}
-		else if (strcmp(trimmed, "VARIABLES") == 0)
-		{
-			for (int i = 0; i < variable_amount; i++)
-			{
-				if (fgets(line, sizeof(line), file) == NULL)
-					break;
-				strncpy(trimmed, line, sizeof(trimmed));
-				trimmed[sizeof(trimmed) - 1] = '\0';
-				size_t ll = strlen(trimmed);
-				if (ll > 0 && trimmed[ll - 1] == '\n')
-					trimmed[ll - 1] = '\0';
-				variable_names[i] = strdup(trimmed);
-			}
-			if (fgets(line, sizeof(line), file) != NULL)
-			{
-			}
-		}
-		else if (strncmp(trimmed, "table_rows=", 11) == 0)
-		{
-			sscanf(trimmed + 11, "%d", &table_rows);
-		}
-		else if (strncmp(trimmed, "table_cols=", 11) == 0)
-		{
-			sscanf(trimmed + 11, "%d", &table_cols);
-		}
-		else if (strcmp(trimmed, "SIMPLEX_TABLE") == 0)
-		{
-			if (simplex_table)
-			{
-				for (int i = 0; i < table_rows; i++)
-				{
-					if (simplex_table[i])
-						free(simplex_table[i]);
-				}
-				free(simplex_table);
-				simplex_table = NULL;
-			}
-
-			simplex_table = malloc(table_rows * sizeof(*simplex_table));
-			for (int i = 0; i < table_rows; i++)
-				simplex_table[i] = malloc(table_cols * sizeof(double));
-
-			for (int i = 0; i < table_rows; i++)
-			{
-				if (fgets(line, sizeof(line), file) == NULL)
-					break;
-				while (strncmp(line, "START_ROW", 9) != 0)
-				{
-					if (fgets(line, sizeof(line), file) == NULL)
-						break;
-				}
-
-				for (int j = 0; j < table_cols; j++)
-				{
-					if (fgets(line, sizeof(line), file) == NULL)
-						break;
-					char tmp[128];
-					strncpy(tmp, line, sizeof(tmp));
-					tmp[sizeof(tmp) - 1] = '\0';
-					size_t lt = strlen(tmp);
-					if (lt > 0 && tmp[lt - 1] == '\n')
-						tmp[lt - 1] = '\0';
-					simplex_table[i][j] = atof(tmp);
-				}
-
-				if (fgets(line, sizeof(line), file) == NULL)
-					break;
-			}
-		}
-	}
-
-	fclose(file);
-}
-
-void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
-{
-	GtkWidget *dialog = gtk_file_chooser_dialog_new("Save Simplex Data",
-													GTK_WINDOW(main_window),
-													GTK_FILE_CHOOSER_ACTION_SAVE,
-													"_Cancel", GTK_RESPONSE_CANCEL,
-													"_Save", GTK_RESPONSE_ACCEPT,
-													NULL);
-
-	// Set default filename
-	gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "LP_problem.smplx");
-
-	// Add file filter
-	GtkFileFilter *filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Simplex Files (*.smplx)");
-	gtk_file_filter_add_pattern(filter, "*.smplx");
-	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-
-	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-	if (result == GTK_RESPONSE_ACCEPT)
-	{
-		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-
-		// Add .ksp extension if not present
-		if (!g_str_has_suffix(filename, ".smplx"))
-		{
-			char *new_filename = g_strdup_printf("%s.smplx", filename);
-			g_free(filename);
-			filename = new_filename;
-		}
-
-		save_data_to_file(filename);
-		g_free(filename);
-	}
-
-	gtk_widget_destroy(dialog);
-}
-
-void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
-{
-	GtkWidget *dialog = gtk_file_chooser_dialog_new("Load Simplex Data",
-													GTK_WINDOW(main_window),
-													GTK_FILE_CHOOSER_ACTION_OPEN,
-													"_Cancel", GTK_RESPONSE_CANCEL,
-													"_Load", GTK_RESPONSE_ACCEPT,
-													NULL);
-
-	// Add file filter
-	GtkFileFilter *filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Simplex Files (*.smplx)");
-	gtk_file_filter_add_pattern(filter, "*.smplx");
-	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-
-	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-	if (result == GTK_RESPONSE_ACCEPT)
-	{
-		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-		load_data_from_file(filename);
-		g_free(filename);
-	}
-	gtk_widget_destroy(dialog);
-}
-
 static void adapt_entry_width(GtkEditable *editable, gpointer user_data)
 {
 	const char *txt = gtk_entry_get_text(GTK_ENTRY(editable));
@@ -775,8 +610,8 @@ void build_objective(void)
 
 void build_constraints()
 {
-	int num_constraints = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
-	int num_variables = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
+	constraint_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
+	variable_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
 
 	GList *children = gtk_container_get_children(GTK_CONTAINER(constraints_container));
 	for (GList *iter = children; iter != NULL; iter = iter->next)
@@ -796,26 +631,26 @@ void build_constraints()
 		constraint_label_widgets = NULL;
 	}
 
-	current_constraints = num_constraints;
-	current_variables = num_variables;
+	current_constraints = constraint_amount;
+	current_variables = variable_amount;
 
-	if (num_constraints > 0 && num_variables > 0)
+	if (constraint_amount > 0 && variable_amount > 0)
 	{
-		constraint_label_widgets = malloc(sizeof(GtkWidget **) * num_constraints);
-		for (int c = 0; c < num_constraints; c++)
+		constraint_label_widgets = malloc(sizeof(GtkWidget **) * constraint_amount);
+		for (int c = 0; c < constraint_amount; c++)
 		{
-			constraint_label_widgets[c] = malloc(sizeof(GtkWidget *) * num_variables);
-			for (int v = 0; v < num_variables; v++)
+			constraint_label_widgets[c] = malloc(sizeof(GtkWidget *) * variable_amount);
+			for (int v = 0; v < variable_amount; v++)
 				constraint_label_widgets[c][v] = NULL;
 		}
 	}
 
-	for (int c = 0; c < num_constraints; ++c)
+	for (int c = 0; c < constraint_amount; ++c)
 	{
 
 		GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
 
-		for (int v = 0; v < num_variables; ++v)
+		for (int v = 0; v < variable_amount; ++v)
 		{
 			GtkWidget *coef_spin = gtk_spin_button_new_with_range(-9999, 9999, 1);
 			gtk_spin_button_set_digits(GTK_SPIN_BUTTON(coef_spin), 2);
@@ -828,7 +663,7 @@ void build_constraints()
 			const char *var_name = gtk_entry_get_text(GTK_ENTRY(variable_entries[v]));
 
 			gchar *label_text;
-			if (v < num_variables - 1)
+			if (v < variable_amount - 1)
 				label_text = g_strdup_printf("%s +", var_name);
 			else
 				label_text = g_strdup(var_name);
@@ -848,6 +683,7 @@ void build_constraints()
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(comp_combo), "=");
 		gtk_combo_box_set_active(GTK_COMBO_BOX(comp_combo), 0);
 		gtk_box_pack_start(GTK_BOX(row), comp_combo, FALSE, FALSE, 6);
+		constraint_combos[c] = comp_combo;
 
 		GtkWidget *rhs_spin = gtk_spin_button_new_with_range(-99999, 99999, 1);
 		gtk_spin_button_set_digits(GTK_SPIN_BUTTON(rhs_spin), 2);
@@ -855,7 +691,7 @@ void build_constraints()
 		gtk_box_pack_start(GTK_BOX(row), rhs_spin, FALSE, FALSE, 0);
 
 		if (spin_table)
-			spin_table[c + 1][num_variables] = rhs_spin;
+			spin_table[c + 1][variable_amount] = rhs_spin;
 
 		gtk_box_pack_start(GTK_BOX(constraints_container), row, FALSE, FALSE, 4);
 	}
@@ -863,10 +699,10 @@ void build_constraints()
 	gtk_widget_show_all(constraints_container);
 }
 
+// TODO: call this every time setup spins change, and remove "Update" button
 void setup_input_page(void)
 {
 	int num_variables = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
-
 	int num_constraints = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
 
 	if (variable_entries != NULL)
@@ -896,41 +732,15 @@ void setup_input_page(void)
 		}
 	}
 
+	if (constraint_combos != NULL)
+	{
+		free(constraint_combos);
+		constraint_combos = NULL;
+	}
+	constraint_combos = malloc(sizeof(GtkWidget *) * num_constraints);
+
 	build_objective();
 	build_constraints();
-}
-
-void fill_simplex_table()
-{
-	table_rows = constraint_amount + 1;
-	table_cols = variable_amount + constraint_amount + 2;
-
-	simplex_table = malloc(table_rows * sizeof(double *));
-	for (int i = 0; i < table_rows; i++)
-		simplex_table[i] = calloc(table_cols, sizeof(double));
-
-	for (int i = 0; i < table_rows; i++)
-	{
-		for (int j = 1; j < table_cols; j++)
-		{
-			if (j <= variable_amount)
-			{
-				if (spin_table[i][j - 1] != NULL && i == 0)
-					simplex_table[i][j] = -1 * gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][j - 1]));
-				else if (spin_table[i][j - 1] != NULL)
-					simplex_table[i][j] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][j - 1]));
-			}
-			else if (j <= variable_amount + constraint_amount)
-			{
-				if (i == j - variable_amount)
-					simplex_table[i][j] = 1;
-			}
-			else if (j == table_cols - 1 && spin_table[i][variable_amount] != NULL)
-			{
-				simplex_table[i][j] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][variable_amount]));
-			}
-		}
-	}
 }
 
 mpfr_t **fill_simplex_table_mpfr(mpfr_prec_t prec)
@@ -946,11 +756,13 @@ mpfr_t **fill_simplex_table_mpfr(mpfr_prec_t prec)
 		}
 	}
 
+	mpfr_set_d(mtable[0][0], 1.0, MPFR_RNDN);
+	int slack_count = 1, excess_count = 1, artificial_count = 1;
 	for (int i = 0; i < table_rows; i++)
 	{
 		for (int j = 1; j < table_cols; j++)
 		{
-			if (j <= variable_amount)
+			if (j <= variable_amount) // variable columns
 			{
 				if (spin_table && spin_table[i] && spin_table[i][j - 1] != NULL && i == 0)
 				{
@@ -963,12 +775,55 @@ mpfr_t **fill_simplex_table_mpfr(mpfr_prec_t prec)
 					mpfr_set_d(mtable[i][j], v, MPFR_RNDN);
 				}
 			}
-			else if (j <= variable_amount + constraint_amount)
+			else if (slackv_amount > 0 && j <= variable_amount + slackv_amount && i > 0) // slack columns
 			{
-				if (i == j - variable_amount)
-					mpfr_set_d(mtable[i][j], 1.0, MPFR_RNDN);
+				int option = gtk_combo_box_get_active(GTK_COMBO_BOX(constraint_combos[i - 1]));
+				if (option == 0)
+				{
+					if (j - variable_amount == slack_count)
+					{
+						mpfr_set_d(mtable[i][j], 1.0, MPFR_RNDN);
+						slack_count++;
+						j = variable_amount + slackv_amount;
+					}
+				}
 			}
-			else if (j == table_cols - 1)
+			else if (excessv_amount > 0 && j <= variable_amount + slackv_amount + excessv_amount && i > 0) // excess columns
+			{
+				int option = gtk_combo_box_get_active(GTK_COMBO_BOX(constraint_combos[i - 1]));
+				if (option == 1)
+				{
+					if (j - variable_amount - slackv_amount == excess_count)
+					{
+						mpfr_set_d(mtable[i][j], -1.0, MPFR_RNDN);
+						excess_count++;
+						j = variable_amount + slackv_amount + excessv_amount;
+					}
+				}
+			}
+			else if (artificialv_amount > 0 && j < table_cols - 1 && i > 0) // artificial columns
+			{
+				int option = gtk_combo_box_get_active(GTK_COMBO_BOX(constraint_combos[i - 1]));
+				if (option == 1 || option == 2)
+				{
+					if (j - variable_amount - slackv_amount - excessv_amount == artificial_count)
+					{
+						mpfr_set_d(mtable[i][j], 1.0, MPFR_RNDN);
+						artificial_count++;
+						j = variable_amount + slackv_amount + excessv_amount + artificialv_amount;
+					}
+				}
+			}
+			else if (artificialv_amount > 0 &&
+					 j <= variable_amount + slackv_amount + excessv_amount + artificialv_amount &&
+					 j > variable_amount + slackv_amount + excessv_amount) // artificial columns in first row
+			{
+				if (mode == 0)
+					mpfr_neg(mtable[i][j], M, MPFR_RNDN);
+				else
+					mpfr_set(mtable[i][j], M, MPFR_RNDN);
+			}
+			else if (j == table_cols - 1) // b column
 			{
 				if (spin_table && spin_table[i] && spin_table[i][variable_amount] != NULL)
 				{
@@ -978,16 +833,40 @@ mpfr_t **fill_simplex_table_mpfr(mpfr_prec_t prec)
 			}
 		}
 	}
-
 	return mtable;
 }
 
 void setup_simplex()
 {
-	variable_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
-	constraint_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
+	// Init variables
+	mpfr_init2(M, 256);
+	mpfr_set_ui(M, 1000000, MPFR_RNDN);
+	slackv_amount = 0;
+	excessv_amount = 0;
+	artificialv_amount = 0;
+
+	// constraint types
+	for (int i = 0; i < constraint_amount; i++)
+	{
+		int option = gtk_combo_box_get_active(GTK_COMBO_BOX(constraint_combos[i]));
+		if (option == 0)
+		{
+			slackv_amount++;
+		}
+		else if (option == 1)
+		{
+			excessv_amount++;
+			artificialv_amount++;
+		}
+		else if (option == 2)
+		{
+			artificialv_amount++;
+		}
+	}
+
 	table_rows = constraint_amount + 1;
-	table_cols = variable_amount + constraint_amount + 2;
+	table_cols = 2 + variable_amount + slackv_amount + excessv_amount + artificialv_amount;
+	g_print("%d, %d, %d\n", slackv_amount, excessv_amount, artificialv_amount);
 
 	// Get variable names
 	for (int i = 0; i < variable_amount; i++)
@@ -1011,8 +890,9 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 	setup_simplex();
 	mpfr_t **table = fill_simplex_table_mpfr(256);
 	setup_latex();
-	print_problem_model(table);
-	simplex(table);
+	print_simplex_table(table, -1, -1, 0);
+	// print_problem_model(table);
+	// simplex(table);
 	fprintf(output_file, "\\end{document}\n");
 	fclose(output_file);
 
