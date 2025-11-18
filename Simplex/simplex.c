@@ -73,19 +73,15 @@ void print_with_M(FILE *f, mpfr_t x)
 	mpfr_inits2(prec, abs_x, k, NULL);
 
 	mpfr_abs(abs_x, x, MPFR_RNDN);
-
-	// Threshold
 	mpfr_t threshold;
 	mpfr_init_set_ui(threshold, 9999, MPFR_RNDN);
 
 	if (mpfr_cmp(abs_x, threshold) <= 0)
 	{
-		// Small number: print normally
 		mpfr_fprintf(f, "%.3Rg", x);
 	}
 	else
 	{
-		// Large number: print as multiple of M
 		mpfr_div(k, x, M, MPFR_RNDN);
 		double k_d = mpfr_get_d(k, MPFR_RNDN);
 
@@ -94,7 +90,7 @@ void print_with_M(FILE *f, mpfr_t x)
 		else if (k_d == -1.0)
 			fprintf(f, "-M");
 		else
-			fprintf(f, "%.3gM", k_d); // 3 significant digits
+			fprintf(f, "%.3gM", k_d);
 	}
 
 	mpfr_clears(abs_x, k, threshold, NULL);
@@ -301,45 +297,48 @@ void report_unbounded(char *var_name)
 	fprintf(output_file, "Please re-model it and try again!\n");
 }
 
-// TODO: update this function to use mpfr **table, instead of simplex_table;
-//  THIS FUNCTION DOESNT WORK
-void check_degeneracy()
+void check_degeneracy(mpfr_t **table)
 {
-	for (int j = 0; j < variable_amount + constraint_amount; j++)
+	for (int j = 0; j < variable_amount + slackv_amount + excessv_amount; j++)
 	{
-		double var_value = 0;
-		int is_basic = 0;
+		mpfr_t var_value, is_basic;
+		mpfr_inits2(mpfr_get_prec(table[0][0]), var_value, is_basic, NULL);
+		mpfr_set_ui(var_value, 0, MPFR_RNDN);
+		mpfr_set_ui(is_basic, 0, MPFR_RNDN);
+
 		for (int i = 1; i < table_rows; i++)
 		{
-			double val = simplex_table[i][j + 1];
-			if (fabs(val) < 1e-9)
-				val = 0.0;
-			if (val != 0.0)
+			mpfr_t val;
+			mpfr_init2(val, mpfr_get_prec(table[0][0]));
+			mpfr_set(val, table[i][j + 1], MPFR_RNDN);
+
+			if (mpfr_cmp_ui(val, 0) != 0)
 			{
-				if (fabs(val - 1.0) < 1e-9)
+				if (mpfr_cmp_ui(val, 1) == 0)
 				{
-					var_value = simplex_table[i][table_cols - 1];
-					is_basic = 1;
-					if (fabs(var_value) < 1e-9)
-						var_value = 0.0;
+					mpfr_set(var_value, table[i][table_cols - 1], MPFR_RNDN);
+					mpfr_set_ui(is_basic, 1, MPFR_RNDN);
 				}
 				else
 				{
-					is_basic = 0;
+					mpfr_set_ui(is_basic, 0, MPFR_RNDN);
+					mpfr_clear(val);
 					break;
 				}
 			}
+			mpfr_clear(val);
 		}
-		if (is_basic && fabs(var_value) < 1e-9) // var_value == 0
+		if (mpfr_cmp_ui(is_basic, 0) != 0 && mpfr_cmp_ui(var_value, 0) == 0)
 		{
 			fprintf(output_file, "\n\\subsection*{Degenerate Base}\n");
 			if (j + 1 < variable_amount + 1)
 				fprintf(output_file, "The variable %s is part of the base but has a value of 0. \n", variable_names[j]);
 			else
 				fprintf(output_file, "The variable $s_%d$ is part of the base but has a value of 0. ", j - variable_amount + 1);
-			fprintf(output_file, "Therefore, this is a degenerate Basic Feasible Solution (BFS).\n\n", j - variable_amount + 1);
+			fprintf(output_file, "Therefore, this is a degenerate Basic Feasible Solution (BFS).\n\n");
 			break;
 		}
+		mpfr_clears(var_value, is_basic, (mpfr_ptr)0);
 	}
 }
 
@@ -395,7 +394,6 @@ void simplex(mpfr_t **table)
 
 		j++;
 	}
-	print_simplex_table(table, -1, -1, 0);
 	while (1)
 	{
 		pivoting++;
@@ -486,12 +484,22 @@ void simplex(mpfr_t **table)
 			char *var_name;
 			if (pivot_col < variable_amount + 1)
 				var_name = variable_names[pivot_col - 1];
-			else
+			else if (pivot_col < variable_amount + slackv_amount + 1)
 			{
 				snprintf(varbuf, sizeof(varbuf), "$s_%d$", pivot_col - variable_amount);
 				var_name = varbuf;
 			}
-			// report_unbounded(var_name);
+			else if (pivot_col < variable_amount + slackv_amount + excessv_amount + 1)
+			{
+				snprintf(varbuf, sizeof(varbuf), "$e_%d$", pivot_col - variable_amount - slackv_amount);
+				var_name = varbuf;
+			}
+			else
+			{
+				snprintf(varbuf, sizeof(varbuf), "unknown");
+				var_name = varbuf;
+			}
+			report_unbounded(var_name);
 			return;
 		}
 		if (intermediate_tables)
@@ -556,8 +564,8 @@ void simplex(mpfr_t **table)
 		{
 			fprintf(output_file, "\\subsubsection*{Pivot Result}\n");
 			print_simplex_table(table, -1, -1, 0);
+			check_degeneracy(table);
 		}
-		// check_degeneracy();
 		if (intermediate_tables)
 			fprintf(output_file, "\n\\newpage\n");
 		safe++;

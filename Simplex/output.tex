@@ -17,54 +17,342 @@
     \vfill
 \end{titlepage}
 \newpage
-\section*{}
+\section*{Degenerado}
 Maximize
 \begin{center}
-Z = 1.00$x_1$ + 1.00$x_2$ 
+Z = 2.00$x_1$ + 1.00$x_2$ 
 \end{center}
 Subject to
 \begin{center}
-1.00$x_1$ + 1.00$x_2$ $\leq$ 0.00 \\
-1.00$x_1$ + 1.00$x_2$ $\leq$ 0.00 \\
+3.00$x_1$ + 1.00$x_2$ $\leq$ 6.00 \\
+1.00$x_1$ - 1.00$x_2$ $\leq$ 2.00 \\
+0.00$x_1$ + 1.00$x_2$ $\leq$ 3.00 \\
 \end{center}
 Simplex Table
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& b\\ \hline
-& 1& -1& -1& 0& 0& 0\\
-& 0& 1& 1& 1& 0& 0\\
-& 0& 1& 1& 0& 1& 0\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& -2& -1& 0& 0& 0& 0\\
+& 0& 3& 1& 1& 0& 0& 6\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
 \end{tabular}
 \end{table}
+\newpage
+\section*{Intermediate Tables}
+\subsection*{Pivoting 1}\subsubsection*{Most Negative}
+Column 2 (-2.00)
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& b\\ \hline
-& 1& -1& -1& 0& 0& 0\\
-& 0& 1& 1& 1& 0& 0\\
-& 0& 1& 1& 0& 1& 0\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& \cellcolor{cyan!30} -2& -1& 0& 0& 0& 0\\
+& 0& 3& 1& 1& 0& 0& 6\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
 \end{tabular}
 \end{table}
+\subsubsection*{Fractions}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
+& 1& -2& -1& 0& 0& 0& 0& \\
+& 0& 3& 1& 1& 0& 0& 6& 2.00\\
+& 0& 1& -1& 0& 1& 0& 2& 2.00\\
+& 0& 0& 1& 0& 0& 1& 3& inf\\
+\end{tabular}
+\end{table}
+$6.00 / 3.00 = 2.00$ \\
+$2.00 / 1.00 = 2.00$ \\
+$3.00 / 0.00 = inf$ \\
+Smallest fraction: 2.00 $\rightarrow$ Pivot: row 3\subsubsection*{Pivot}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& -2& -1& 0& 0& 0& 0\\
+& 0& 3& 1& 1& 0& 0& 6\\
+& 0& \cellcolor{cyan!30} 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+\subsubsection*{Canonization}
+$R_3 \leftarrow R_3/1.00$ \\\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& -2& -1& 0& 0& 0& 0\\
+& 0& 3& 1& 1& 0& 0& 6\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} -1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+$R_1 \leftarrow R_1 + 2.00 R_3$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -3& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4\\
+& 0& 3& 1& 1& 0& 0& 6\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+$R_2 \leftarrow R_2 + -3.00 R_3$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& -3& 0& 2& 0& 4\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} -3& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+$R_4 \leftarrow R_4 + -0.00 R_3$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& -3& 0& 2& 0& 4\\
+& 0& 0& 4& 1& -3& 0& 0\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 3\\
+\end{tabular}
+\end{table}
+\subsubsection*{Pivot Result}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& -3& 0& 2& 0& 4\\
+& 0& 0& 4& 1& -3& 0& 0\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+
+\subsection*{Degenerate Base}
+The variable $s_1$ is part of the base but has a value of 0. Therefore, this is a degenerate Basic Feasible Solution (BFS).
+
+
+\newpage
+\subsection*{Pivoting 2}\subsubsection*{Most Negative}
+Column 3 (-3.00)
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& \cellcolor{cyan!30} -3& 0& 2& 0& 4\\
+& 0& 0& 4& 1& -3& 0& 0\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+\subsubsection*{Fractions}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
+& 1& 0& -3& 0& 2& 0& 4& \\
+& 0& 0& 4& 1& -3& 0& 0& 0.00\\
+& 0& 1& -1& 0& 1& 0& 2& -2.00\\
+& 0& 0& 1& 0& 0& 1& 3& 3.00\\
+\end{tabular}
+\end{table}
+$0.00 / 4.00 = 0.00$ \\
+$2.00 / -1.00 = -2.00$ \\
+$3.00 / 1.00 = 3.00$ \\
+Smallest fraction: 0.00 $\rightarrow$ Pivot: row 2\subsubsection*{Pivot}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& -3& 0& 2& 0& 4\\
+& 0& 0& \cellcolor{cyan!30} 4& 1& -3& 0& 0\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+\subsubsection*{Canonization}
+$R_2 \leftarrow R_2/4.00$ \\\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& -3& 0& 2& 0& 4\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0.25& \cellcolor{cyan!30} -0.75& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+$R_1 \leftarrow R_1 + 3.00 R_2$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.75& \cellcolor{cyan!30} -0.25& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& 0& 1& -1& 0& 1& 0& 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+$R_3 \leftarrow R_3 + 1.00 R_2$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.75& -0.25& 0& 4\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.25& \cellcolor{cyan!30} 0.25& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2\\
+& 0& 0& 1& 0& 0& 1& 3\\
+\end{tabular}
+\end{table}
+$R_4 \leftarrow R_4 + -1.00 R_2$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.75& -0.25& 0& 4\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& 0& 1& 0& 0.25& 0.25& 0& 2\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.25& \cellcolor{cyan!30} 0.75& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 3\\
+\end{tabular}
+\end{table}
+\subsubsection*{Pivot Result}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.75& -0.25& 0& 4\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& 0& 1& 0& 0.25& 0.25& 0& 2\\
+& 0& 0& 0& -0.25& 0.75& 1& 3\\
+\end{tabular}
+\end{table}
+
+\subsection*{Degenerate Base}
+The variable $x_2$ is part of the base but has a value of 0. 
+Therefore, this is a degenerate Basic Feasible Solution (BFS).
+
+
+\newpage
+\subsection*{Pivoting 3}\subsubsection*{Most Negative}
+Column 5 (-0.25)
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.75& \cellcolor{cyan!30} -0.25& 0& 4\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& 0& 1& 0& 0.25& 0.25& 0& 2\\
+& 0& 0& 0& -0.25& 0.75& 1& 3\\
+\end{tabular}
+\end{table}
+\subsubsection*{Fractions}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
+& 1& 0& 0& 0.75& -0.25& 0& 4& \\
+& 0& 0& 1& 0.25& -0.75& 0& 0& -0.00\\
+& 0& 1& 0& 0.25& 0.25& 0& 2& 8.00\\
+& 0& 0& 0& -0.25& 0.75& 1& 3& 4.00\\
+\end{tabular}
+\end{table}
+$0.00 / -0.75 = -0.00$ \\
+$2.00 / 0.25 = 8.00$ \\
+$3.00 / 0.75 = 4.00$ \\
+Smallest fraction: 4.00 $\rightarrow$ Pivot: row 4\subsubsection*{Pivot}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.75& -0.25& 0& 4\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& 0& 1& 0& 0.25& 0.25& 0& 2\\
+& 0& 0& 0& -0.25& \cellcolor{cyan!30} 0.75& 1& 3\\
+\end{tabular}
+\end{table}
+\subsubsection*{Canonization}
+$R_4 \leftarrow R_4/0.75$ \\\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.75& -0.25& 0& 4\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& 0& 1& 0& 0.25& 0.25& 0& 2\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.333& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 1.33& \cellcolor{cyan!30} 4\\
+\end{tabular}
+\end{table}
+$R_1 \leftarrow R_1 + 0.25 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.667& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.333& \cellcolor{cyan!30} 5\\
+& 0& 0& 1& 0.25& -0.75& 0& 0\\
+& 0& 1& 0& 0.25& 0.25& 0& 2\\
+& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\end{tabular}
+\end{table}
+$R_2 \leftarrow R_2 + 0.75 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.667& 0& 0.333& 5\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 3\\
+& 0& 1& 0& 0.25& 0.25& 0& 2\\
+& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\end{tabular}
+\end{table}
+$R_3 \leftarrow R_3 + -0.25 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.667& 0& 0.333& 5\\
+& 0& 0& 1& 0& 0& 1& 3\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.333& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.333& \cellcolor{cyan!30} 1\\
+& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\end{tabular}
+\end{table}
+\subsubsection*{Pivot Result}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.667& 0& 0.333& 5\\
+& 0& 0& 1& 0& 0& 1& 3\\
+& 0& 1& 0& 0.333& 0& -0.333& 1\\
+& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\end{tabular}
+\end{table}
+
+\newpage
 \section*{Results}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& b\\ \hline
-& 1& 0& 0& 0& 1& 0\\
-& 0& 0& 0& 1& -1& 0\\
-& 0& 1& 1& 0& 1& 0\\
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 1& 0& 0& 0.667& 0& 0.333& 5\\
+& 0& 0& 1& 0& 0& 1& 3\\
+& 0& 1& 0& 0.333& 0& -0.333& 1\\
+& 0& 0& 0& -0.333& 1& 1.33& 4\\
 \end{tabular}
 \end{table}
 
 \subsection*{Objective Value}
-Z = 0.00
+Z = 5.00
 
 \subsection*{Variables}
-$x_1$ = 0.00 \\
-$x_2$ = 0.00 \\
+$x_1$ = 1.00 \\
+$x_2$ = 3.00 \\
 
 \subsection*{Slack or Surplus}
 $s_1$ = 0.00 \\
-$s_2$ = 0.00 \\
+$s_2$ = 4.00 \\
+$s_3$ = 0.00 \\
 \end{document}
