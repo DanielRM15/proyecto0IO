@@ -68,48 +68,26 @@ void setup_latex()
 void print_with_M(FILE *f, mpfr_t x)
 {
 	mpfr_prec_t prec = mpfr_get_prec(x);
-
-	mpfr_t abs_x, k, k_int, remainder, tmp;
-	mpfr_inits2(prec, abs_x, k, k_int, remainder, tmp, NULL);
+	mpfr_t abs_x, k;
+	mpfr_inits2(prec, abs_x, k, NULL);
 
 	mpfr_abs(abs_x, x, MPFR_RNDN);
 
-	// If small, just print the number
-	mpfr_t max_print_val;
-	mpfr_init_set_ui(max_print_val, 10000, MPFR_RNDN);
-	if (mpfr_cmp(abs_x, max_print_val) < 0)
+	mpfr_t threshold;
+	mpfr_init_set_ui(threshold, 9999, MPFR_RNDN);
+
+	if (mpfr_cmp(abs_x, threshold) <= 0)
 	{
-		mpfr_clear(max_print_val);
-		mpfr_fprintf(f, "%.2Rf", x);
-		mpfr_clears(abs_x, k, k_int, remainder, tmp, NULL);
-		return;
+		mpfr_fprintf(f, "%.3Rg", x);
 	}
-	mpfr_clear(max_print_val);
-
-	mpfr_div(k, x, M, MPFR_RNDN);
-	mpfr_round(k_int, k);
-
-	// remainder = x - k_int * M
-	mpfr_mul(tmp, k_int, M, MPFR_RNDN);
-	mpfr_sub(remainder, x, tmp, MPFR_RNDN);
-
-	// Print remainder if non-zero
-	if (mpfr_cmp_ui(remainder, 0) != 0)
+	else
 	{
-		mpfr_fprintf(f, "%.2Rf", remainder);
-		if (mpfr_cmp_ui(k_int, 0) != 0)
-			fprintf(f, " + ");
+		mpfr_div(k, x, M, MPFR_RNDN);
+		double k_d = mpfr_get_d(k, MPFR_RNDN);
+		fprintf(f, "%.3gM", k_d);
 	}
 
-	// Print M coefficient
-	if (mpfr_cmp_ui(k_int, 1) == 0)
-		fprintf(f, "M");
-	else if (mpfr_cmp_si(k_int, -1) == 0)
-		fprintf(f, "-M");
-	else if (mpfr_cmp_ui(k_int, 0) != 0)
-		mpfr_fprintf(f, "%.2RfM", k_int);
-
-	mpfr_clears(abs_x, k, k_int, remainder, tmp, NULL);
+	mpfr_clears(abs_x, k, threshold, NULL);
 }
 
 void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, int print_fractions)
@@ -349,7 +327,6 @@ void check_degeneracy()
 
 void simplex(mpfr_t **table)
 {
-	g_print("Start Simplex\n");
 	if (intermediate_tables)
 		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
 
@@ -378,8 +355,8 @@ void simplex(mpfr_t **table)
 
 		if (one_row == -1)
 		{
-			fprintf(stderr, "Error: could not find row with artificial var = 1\n");
-			exit(1);
+			g_print("Error: failed canonization of artificial variables.\n");
+			return;
 		}
 
 		for (int c = 1; c < table_cols; c++)
@@ -401,13 +378,12 @@ void simplex(mpfr_t **table)
 		j++;
 	}
 	print_simplex_table(table, -1, -1, 0);
-	g_print("Finish Simplex\n");
-	return;
 	while (1)
 	{
 		pivoting++;
-		int pivot_col = 1; // The most negative column (index, not value)
-		for (int i = 2; i < table_cols - 1; i++)
+		int pivot_col = 1; // The most negative/positive column (index, not value)
+		int pivoting_cols = variable_amount + slackv_amount + excessv_amount;
+		for (int i = 2; i <= pivoting_cols; i++)
 		{
 			if (mode == 0)
 			{
