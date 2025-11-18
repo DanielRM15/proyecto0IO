@@ -17,317 +17,258 @@
     \vfill
 \end{titlepage}
 \newpage
-\section*{Degenerado}
+\section*{Dakota}
 Maximize
 \begin{center}
-Z = 2.00$x_1$ + 1.00$x_2$ 
+Z = 60.00$x_1$ + 35.00$x_2$ + 20.00$x_3$ 
 \end{center}
 Subject to
 \begin{center}
-3.00$x_1$ + 1.00$x_2$ $\leq$ 6.00 \\
-1.00$x_1$ - 1.00$x_2$ $\leq$ 2.00 \\
-0.00$x_1$ + 1.00$x_2$ $\leq$ 3.00 \\
+8.00$x_1$ + 6.00$x_2$ + 1.00$x_3$ $\leq$ 48.00 \\
+4.00$x_1$ + 2.00$x_2$ + 1.50$x_3$ $\leq$ 20.00 \\
+2.00$x_1$ + 1.50$x_2$ + 0.50$x_3$ $\leq$ 8.00 \\
+0.00$x_1$ + 1.00$x_2$ + 0.00$x_3$ $\leq$ 5.00 \\
 \end{center}
 Simplex Table
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& -2& -1& 0& 0& 0& 0\\
-& 0& 3& 1& 1& 0& 0& 6\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& -60& -35& -20& 0& 0& 0& 0& 0\\
+& 0& 8& 6& 1& 1& 0& 0& 0& 48\\
+& 0& 4& 2& 1.5& 0& 1& 0& 0& 20\\
+& 0& 2& 1.5& 0.5& 0& 0& 1& 0& 8\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
 \newpage
 \section*{Intermediate Tables}
 \subsection*{Pivoting 1}\subsubsection*{Most Negative}
-Column 2 (-2.00)
+Column 2 (-60.00)
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& \cellcolor{cyan!30} -2& -1& 0& 0& 0& 0\\
-& 0& 3& 1& 1& 0& 0& 6\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& \cellcolor{cyan!30} -60& -35& -20& 0& 0& 0& 0& 0\\
+& 0& 8& 6& 1& 1& 0& 0& 0& 48\\
+& 0& 4& 2& 1.5& 0& 1& 0& 0& 20\\
+& 0& 2& 1.5& 0.5& 0& 0& 1& 0& 8\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
 \subsubsection*{Fractions}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
-& 1& -2& -1& 0& 0& 0& 0& \\
-& 0& 3& 1& 1& 0& 0& 6& 2.00\\
-& 0& 1& -1& 0& 1& 0& 2& 2.00\\
-& 0& 0& 1& 0& 0& 1& 3& inf\\
+\begin{tabular}{c|rrrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b& Frac\\ \hline
+& 1& -60& -35& -20& 0& 0& 0& 0& 0& \\
+& 0& 8& 6& 1& 1& 0& 0& 0& 48& 6.00\\
+& 0& 4& 2& 1.5& 0& 1& 0& 0& 20& 5.00\\
+& 0& 2& 1.5& 0.5& 0& 0& 1& 0& 8& 4.00\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5& inf\\
 \end{tabular}
 \end{table}
-$6.00 / 3.00 = 2.00$ \\
-$2.00 / 1.00 = 2.00$ \\
-$3.00 / 0.00 = inf$ \\
-Smallest fraction: 2.00 $\rightarrow$ Pivot: row 3\subsubsection*{Pivot}
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& -2& -1& 0& 0& 0& 0\\
-& 0& 3& 1& 1& 0& 0& 6\\
-& 0& \cellcolor{cyan!30} 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-\subsubsection*{Canonization}
-$R_3 \leftarrow R_3/1.00$ \\\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& -2& -1& 0& 0& 0& 0\\
-& 0& 3& 1& 1& 0& 0& 6\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} -1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-$R_1 \leftarrow R_1 + 2.00 R_3$ \\
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -3& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4\\
-& 0& 3& 1& 1& 0& 0& 6\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-$R_2 \leftarrow R_2 + -3.00 R_3$ \\
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& -3& 0& 2& 0& 4\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} -3& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-$R_4 \leftarrow R_4 + -0.00 R_3$ \\
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& -3& 0& 2& 0& 4\\
-& 0& 0& 4& 1& -3& 0& 0\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 3\\
-\end{tabular}
-\end{table}
-\subsubsection*{Pivot Result}
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& -3& 0& 2& 0& 4\\
-& 0& 0& 4& 1& -3& 0& 0\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-
-\subsection*{Degenerate Base}
-The variable $s_1$ is part of the base but has a value of 0. Therefore, this is a degenerate Basic Feasible Solution (BFS).
-
-
-\newpage
-\subsection*{Pivoting 2}\subsubsection*{Most Negative}
-Column 3 (-3.00)
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& \cellcolor{cyan!30} -3& 0& 2& 0& 4\\
-& 0& 0& 4& 1& -3& 0& 0\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-\subsubsection*{Fractions}
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
-& 1& 0& -3& 0& 2& 0& 4& \\
-& 0& 0& 4& 1& -3& 0& 0& 0.00\\
-& 0& 1& -1& 0& 1& 0& 2& -2.00\\
-& 0& 0& 1& 0& 0& 1& 3& 3.00\\
-\end{tabular}
-\end{table}
-$0.00 / 4.00 = 0.00$ \\
-$2.00 / -1.00 = -2.00$ \\
-$3.00 / 1.00 = 3.00$ \\
-Smallest fraction: 0.00 $\rightarrow$ Pivot: row 2\subsubsection*{Pivot}
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& -3& 0& 2& 0& 4\\
-& 0& 0& \cellcolor{cyan!30} 4& 1& -3& 0& 0\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-\subsubsection*{Canonization}
-$R_2 \leftarrow R_2/4.00$ \\\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& -3& 0& 2& 0& 4\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0.25& \cellcolor{cyan!30} -0.75& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-$R_1 \leftarrow R_1 + 3.00 R_2$ \\
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.75& \cellcolor{cyan!30} -0.25& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& 0& 1& -1& 0& 1& 0& 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-$R_3 \leftarrow R_3 + 1.00 R_2$ \\
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.75& -0.25& 0& 4\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.25& \cellcolor{cyan!30} 0.25& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2\\
-& 0& 0& 1& 0& 0& 1& 3\\
-\end{tabular}
-\end{table}
-$R_4 \leftarrow R_4 + -1.00 R_2$ \\
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.75& -0.25& 0& 4\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& 0& 1& 0& 0.25& 0.25& 0& 2\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.25& \cellcolor{cyan!30} 0.75& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 3\\
-\end{tabular}
-\end{table}
-\subsubsection*{Pivot Result}
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.75& -0.25& 0& 4\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& 0& 1& 0& 0.25& 0.25& 0& 2\\
-& 0& 0& 0& -0.25& 0.75& 1& 3\\
-\end{tabular}
-\end{table}
-
-\subsection*{Degenerate Base}
-The variable $x_2$ is part of the base but has a value of 0. 
-Therefore, this is a degenerate Basic Feasible Solution (BFS).
-
-
-\newpage
-\subsection*{Pivoting 3}\subsubsection*{Most Negative}
-Column 5 (-0.25)
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.75& \cellcolor{cyan!30} -0.25& 0& 4\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& 0& 1& 0& 0.25& 0.25& 0& 2\\
-& 0& 0& 0& -0.25& 0.75& 1& 3\\
-\end{tabular}
-\end{table}
-\subsubsection*{Fractions}
-\begin{table}[H]
-\centering
-\begin{tabular}{c|rrrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b& Frac\\ \hline
-& 1& 0& 0& 0.75& -0.25& 0& 4& \\
-& 0& 0& 1& 0.25& -0.75& 0& 0& -0.00\\
-& 0& 1& 0& 0.25& 0.25& 0& 2& 8.00\\
-& 0& 0& 0& -0.25& 0.75& 1& 3& 4.00\\
-\end{tabular}
-\end{table}
-$0.00 / -0.75 = -0.00$ \\
-$2.00 / 0.25 = 8.00$ \\
-$3.00 / 0.75 = 4.00$ \\
+$48.00 / 8.00 = 6.00$ \\
+$20.00 / 4.00 = 5.00$ \\
+$8.00 / 2.00 = 4.00$ \\
+$5.00 / 0.00 = inf$ \\
 Smallest fraction: 4.00 $\rightarrow$ Pivot: row 4\subsubsection*{Pivot}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.75& -0.25& 0& 4\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& 0& 1& 0& 0.25& 0.25& 0& 2\\
-& 0& 0& 0& -0.25& \cellcolor{cyan!30} 0.75& 1& 3\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& -60& -35& -20& 0& 0& 0& 0& 0\\
+& 0& 8& 6& 1& 1& 0& 0& 0& 48\\
+& 0& 4& 2& 1.5& 0& 1& 0& 0& 20\\
+& 0& \cellcolor{cyan!30} 2& 1.5& 0.5& 0& 0& 1& 0& 8\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
 \subsubsection*{Canonization}
-$R_4 \leftarrow R_4/0.75$ \\\begin{table}[H]
+$R_4 \leftarrow R_4/2.00$ \\\begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.75& -0.25& 0& 4\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& 0& 1& 0& 0.25& 0.25& 0& 2\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.333& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 1.33& \cellcolor{cyan!30} 4\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& -60& -35& -20& 0& 0& 0& 0& 0\\
+& 0& 8& 6& 1& 1& 0& 0& 0& 48\\
+& 0& 4& 2& 1.5& 0& 1& 0& 0& 20\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0.75& \cellcolor{cyan!30} 0.25& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.5& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
-$R_1 \leftarrow R_1 + 0.25 R_4$ \\
+$R_1 \leftarrow R_1 + 60.00 R_4$ \\
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.667& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.333& \cellcolor{cyan!30} 5\\
-& 0& 0& 1& 0.25& -0.75& 0& 0\\
-& 0& 1& 0& 0.25& 0.25& 0& 2\\
-& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 10& \cellcolor{cyan!30} -5& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 30& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 240\\
+& 0& 8& 6& 1& 1& 0& 0& 0& 48\\
+& 0& 4& 2& 1.5& 0& 1& 0& 0& 20\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
-$R_2 \leftarrow R_2 + 0.75 R_4$ \\
+$R_2 \leftarrow R_2 + -8.00 R_4$ \\
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.667& 0& 0.333& 5\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 3\\
-& 0& 1& 0& 0.25& 0.25& 0& 2\\
-& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 10& -5& 0& 0& 30& 0& 240\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -1& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -4& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 16\\
+& 0& 4& 2& 1.5& 0& 1& 0& 0& 20\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
-$R_3 \leftarrow R_3 + -0.25 R_4$ \\
+$R_3 \leftarrow R_3 + -4.00 R_4$ \\
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.667& 0& 0.333& 5\\
-& 0& 0& 1& 0& 0& 1& 3\\
-& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.333& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.333& \cellcolor{cyan!30} 1\\
-& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 10& -5& 0& 0& 30& 0& 240\\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -1& \cellcolor{cyan!30} 0.5& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} -2& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 4\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_5 \leftarrow R_5 + -0.00 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 10& -5& 0& 0& 30& 0& 240\\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16\\
+& 0& 0& -1& 0.5& 0& 1& -2& 0& 4\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 5\\
 \end{tabular}
 \end{table}
 \subsubsection*{Pivot Result}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.667& 0& 0.333& 5\\
-& 0& 0& 1& 0& 0& 1& 3\\
-& 0& 1& 0& 0.333& 0& -0.333& 1\\
-& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 10& -5& 0& 0& 30& 0& 240\\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16\\
+& 0& 0& -1& 0.5& 0& 1& -2& 0& 4\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+
+\newpage
+\subsection*{Pivoting 2}\subsubsection*{Most Negative}
+Column 4 (-5.00)
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 10& \cellcolor{cyan!30} -5& 0& 0& 30& 0& 240\\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16\\
+& 0& 0& -1& 0.5& 0& 1& -2& 0& 4\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+\subsubsection*{Fractions}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b& Frac\\ \hline
+& 1& 0& 10& -5& 0& 0& 30& 0& 240& \\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16& -16.00\\
+& 0& 0& -1& 0.5& 0& 1& -2& 0& 4& 8.00\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4& 16.00\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5& inf\\
+\end{tabular}
+\end{table}
+$16.00 / -1.00 = -16.00$ \\
+$4.00 / 0.50 = 8.00$ \\
+$4.00 / 0.25 = 16.00$ \\
+$5.00 / 0.00 = inf$ \\
+Smallest fraction: 8.00 $\rightarrow$ Pivot: row 3\subsubsection*{Pivot}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 10& -5& 0& 0& 30& 0& 240\\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16\\
+& 0& 0& -1& \cellcolor{cyan!30} 0.5& 0& 1& -2& 0& 4\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+\subsubsection*{Canonization}
+$R_3 \leftarrow R_3/0.50$ \\\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 10& -5& 0& 0& 30& 0& 240\\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -2& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2& \cellcolor{cyan!30} -4& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 8\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_1 \leftarrow R_1 + 5.00 R_3$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 10& \cellcolor{cyan!30} 10& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 280\\
+& 0& 0& 0& -1& 1& 0& -4& 0& 16\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_2 \leftarrow R_2 + 1.00 R_3$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -2& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 2& \cellcolor{cyan!30} -8& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 1& 0.75& 0.25& 0& 0& 0.5& 0& 4\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_4 \leftarrow R_4 + -0.25 R_3$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 1.25& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.5& \cellcolor{cyan!30} 1.5& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 2\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_5 \leftarrow R_5 + -0.00 R_3$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 1& 1.25& 0& 0& -0.5& 1.5& 0& 2\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 5\\
+\end{tabular}
+\end{table}
+\subsubsection*{Pivot Result}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 1& 1.25& 0& 0& -0.5& 1.5& 0& 2\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
 
@@ -335,24 +276,146 @@ $R_3 \leftarrow R_3 + -0.25 R_4$ \\
 \section*{Results}
 \begin{table}[H]
 \centering
-\begin{tabular}{c|rrrrrrr}
-& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
-& 1& 0& 0& 0.667& 0& 0.333& 5\\
-& 0& 0& 1& 0& 0& 1& 3\\
-& 0& 1& 0& 0.333& 0& -0.333& 1\\
-& 0& 0& 0& -0.333& 1& 1.33& 4\\
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 1& 1.25& 0& 0& -0.5& 1.5& 0& 2\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
 \end{tabular}
 \end{table}
 
 \subsection*{Objective Value}
-Z = 5.00
+Z = 280.00
 
 \subsection*{Variables}
-$x_1$ = 1.00 \\
-$x_2$ = 3.00 \\
+$x_1$ = 2.00 \\
+$x_2$ = 0.00 \\
+$x_3$ = 8.00 \\
 
 \subsection*{Slack or Surplus}
-$s_1$ = 0.00 \\
-$s_2$ = 4.00 \\
+$s_1$ = 24.00 \\
+$s_2$ = 0.00 \\
 $s_3$ = 0.00 \\
+$s_4$ = 5.00 \\
+\newpage
+\section*{Multiple Solutions}
+A non-basic variable has a 0 on its first row, allowing us to pivot again and find another optimal solution.
+
+\subsection*{Pivoting 3}\subsubsection*{Most Negative}
+Column 3 (0.00)
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& \cellcolor{cyan!30} 0& 0& 0& 10& 10& 0& 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 1& 1.25& 0& 0& -0.5& 1.5& 0& 2\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+\subsubsection*{Fractions}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b& Frac\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280& \\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24& -12.00\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8& -4.00\\
+& 0& 1& 1.25& 0& 0& -0.5& 1.5& 0& 2& 1.60\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5& 5.00\\
+\end{tabular}
+\end{table}
+$24.00 / -2.00 = -12.00$ \\
+$8.00 / -2.00 = -4.00$ \\
+$2.00 / 1.25 = 1.60$ \\
+$5.00 / 1.00 = 5.00$ \\
+Smallest fraction: 1.60 $\rightarrow$ Pivot: row 4\subsubsection*{Pivot}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 1& \cellcolor{cyan!30} 1.25& 0& 0& -0.5& 1.5& 0& 2\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+\subsubsection*{Canonization}
+$R_4 \leftarrow R_4/1.25$ \\\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.8& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.4& \cellcolor{cyan!30} 1.2& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1.6\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_1 \leftarrow R_1 + -0.00 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 10& \cellcolor{cyan!30} 10& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 280\\
+& 0& 0& -2& 0& 1& 2& -8& 0& 24\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 0.8& 1& 0& 0& -0.4& 1.2& 0& 1.6\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_2 \leftarrow R_2 + 2.00 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1.6& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 1.2& \cellcolor{cyan!30} -5.6& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 27.2\\
+& 0& 0& -2& 1& 0& 2& -4& 0& 8\\
+& 0& 0.8& 1& 0& 0& -0.4& 1.2& 0& 1.6\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_3 \leftarrow R_3 + 2.00 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 1.6& 0& 0& 1& 1.2& -5.6& 0& 27.2\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1.6& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 1.2& \cellcolor{cyan!30} -1.6& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 11.2\\
+& 0& 0.8& 1& 0& 0& -0.4& 1.2& 0& 1.6\\
+& 0& 0& 1& 0& 0& 0& 0& 1& 5\\
+\end{tabular}
+\end{table}
+$R_5 \leftarrow R_5 + -1.00 R_4$ \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 1.6& 0& 0& 1& 1.2& -5.6& 0& 27.2\\
+& 0& 1.6& 0& 1& 0& 1.2& -1.6& 0& 11.2\\
+& 0& 0.8& 1& 0& 0& -0.4& 1.2& 0& 1.6\\
+& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} -0.8& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0& \cellcolor{cyan!30} 0.4& \cellcolor{cyan!30} -1.2& \cellcolor{cyan!30} 1& \cellcolor{cyan!30} 3.4\\
+\end{tabular}
+\end{table}
+\subsubsection*{Pivot Result}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrrrr}
+& Z & $x_1$& $x_2$& $x_3$& $s_1$& $s_2$& $s_3$& $s_4$& b\\ \hline
+& 1& 0& 0& 0& 0& 10& 10& 0& 280\\
+& 0& 1.6& 0& 0& 1& 1.2& -5.6& 0& 27.2\\
+& 0& 1.6& 0& 1& 0& 1.2& -1.6& 0& 11.2\\
+& 0& 0.8& 1& 0& 0& -0.4& 1.2& 0& 1.6\\
+& 0& -0.8& 0& 0& 0& 0.4& -1.2& 1& 3.4\\
+\end{tabular}
+\end{table}
+
+\newpage
 \end{document}

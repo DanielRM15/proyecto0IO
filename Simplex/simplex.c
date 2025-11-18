@@ -342,13 +342,203 @@ void check_degeneracy(mpfr_t **table)
 	}
 }
 
+// Return 1 if can pivot again. Return 0 if cannot pivot again. -1 if unbounded
+int pivot(mpfr_t **table, int pivot_col, int pivoting) // ARGS: simplex table, pivot #
+{
+	if (intermediate_tables) // Print intermediate tables data
+	{
+		fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
+		if (mode)
+			fprintf(output_file, "\\subsection*{Most Positive}\n");
+		else
+			fprintf(output_file, "\\subsubsection*{Most Negative}\n");
+		mpfr_fprintf(output_file, "Column %d (%.2Rf)\n", pivot_col + 1, table[0][pivot_col]);
+		print_simplex_table(table, 0, pivot_col, 0);
+		fprintf(output_file, "\\subsubsection*{Fractions}\n");
+		print_simplex_table(table, -1, -1, pivot_col);
+	}
+
+	int smallest_frac = 1; // The smallest fraction row
+	int is_unbounded = 1;
+	mpfr_t frac, tmp, zero;
+	mpfr_inits2(256, frac, tmp, zero, NULL);
+	mpfr_set_ui(zero, 0, MPFR_RNDN);
+	for (int i = 1; i < table_rows; i++)
+	{
+		mpfr_div(frac, table[i][table_cols - 1], table[i][pivot_col], MPFR_RNDN);
+
+		if (intermediate_tables)
+		{
+			mpfr_fprintf(output_file,
+						 "$%.2Rf / %.2Rf = %.2Rf$ \\\\\n",
+						 table[i][table_cols - 1],
+						 table[i][pivot_col],
+						 frac);
+		}
+		if (mpfr_cmp(table[i][table_cols - 1], zero) < 0 ||
+			mpfr_cmp(table[i][pivot_col], zero) < 0)
+		{
+			continue;
+		}
+		else
+		{
+			is_unbounded = 0;
+		}
+		mpfr_div(tmp,
+				 table[smallest_frac][table_cols - 1],
+				 table[smallest_frac][pivot_col],
+				 MPFR_RNDN);
+		if (mpfr_cmp(frac, tmp) <= 0 ||
+			mpfr_cmp(table[smallest_frac][table_cols - 1], zero) < 0 ||
+			mpfr_cmp(table[smallest_frac][pivot_col], zero) < 0)
+		{
+			smallest_frac = i;
+		}
+	}
+	mpfr_clears(frac, tmp, zero, NULL);
+
+	if (is_unbounded)
+	{
+		char varbuf[12];
+		char *var_name;
+		if (pivot_col < variable_amount + 1)
+			var_name = variable_names[pivot_col - 1];
+		else if (pivot_col < variable_amount + slackv_amount + 1)
+		{
+			snprintf(varbuf, sizeof(varbuf), "$s_%d$", pivot_col - variable_amount);
+			var_name = varbuf;
+		}
+		else if (pivot_col < variable_amount + slackv_amount + excessv_amount + 1)
+		{
+			snprintf(varbuf, sizeof(varbuf), "$e_%d$", pivot_col - variable_amount - slackv_amount);
+			var_name = varbuf;
+		}
+		else
+		{
+			snprintf(varbuf, sizeof(varbuf), "unknown");
+			var_name = varbuf;
+		}
+		report_unbounded(var_name);
+		return -1; // -> unbounded
+	}
+	if (intermediate_tables)
+	{
+		mpfr_t ratio;
+		mpfr_init2(ratio, 256);
+		mpfr_div(ratio,
+				 table[smallest_frac][table_cols - 1],
+				 table[smallest_frac][pivot_col],
+				 MPFR_RNDN);
+		mpfr_fprintf(output_file, "Smallest fraction: %.2Rf", ratio);
+		mpfr_clear(ratio);
+		fprintf(output_file, " $\\rightarrow$ Pivot: row %d", smallest_frac + 1);
+		fprintf(output_file, "\\subsubsection*{Pivot}\n");
+		print_simplex_table(table, smallest_frac, pivot_col, 0);
+	}
+
+	// Make a 1 on smallest frac cell
+	mpfr_t div_value;
+	mpfr_init2(div_value, 256);
+	mpfr_set(div_value, table[smallest_frac][pivot_col], MPFR_RNDN);
+	for (int i = 0; i < table_cols; i++)
+	{
+		mpfr_div(table[smallest_frac][i],
+				 table[smallest_frac][i],
+				 div_value,
+				 MPFR_RNDN);
+	}
+	if (intermediate_tables)
+	{
+		fprintf(output_file, "\\subsubsection*{Canonization}\n", pivoting);
+		mpfr_fprintf(output_file, "$R_%d \\leftarrow R_%d/%.2Rf$ \\\\", smallest_frac + 1, smallest_frac + 1, div_value);
+		print_simplex_table(table, smallest_frac, -1, 0);
+	}
+	mpfr_clear(div_value);
+
+	// Convert col to 0s
+	for (int i = 0; i < table_rows; i++)
+	{
+		if (i == smallest_frac)
+			continue;
+
+		mpfr_t mult_value, tmp;
+		mpfr_inits2(256, mult_value, tmp, NULL);
+		mpfr_neg(mult_value, table[i][pivot_col], MPFR_RNDN);
+		for (int j = 0; j < table_cols; j++)
+		{
+			mpfr_mul(tmp, mult_value, table[smallest_frac][j], MPFR_RNDN);
+			mpfr_add(table[i][j], table[i][j], tmp, MPFR_RNDN);
+		}
+
+		if (intermediate_tables)
+		{
+			mpfr_fprintf(output_file,
+						 "$R_%d \\leftarrow R_%d + %.2Rf R_%d$ \\\\\n",
+						 i + 1, i + 1, mult_value, smallest_frac + 1);
+			print_simplex_table(table, i, -1, 0);
+		}
+		mpfr_clears(mult_value, tmp, NULL);
+	}
+	if (intermediate_tables)
+	{
+		fprintf(output_file, "\\subsubsection*{Pivot Result}\n");
+		print_simplex_table(table, -1, -1, 0);
+		check_degeneracy(table);
+	}
+	if (intermediate_tables)
+		fprintf(output_file, "\n\\newpage\n");
+
+	return 1; // Return 1 -> pivot again
+}
+
+void multiple_solutions(mpfr_t **table, int pivoting)
+{
+	// Check for multiple solutions
+	int is_basic = 1;
+	int pivot_col = 0;
+	for (int c = 0; c < variable_amount + slackv_amount + excessv_amount; c++)
+	{
+		if (mpfr_cmp_ui(table[0][c + 1], 0) != 0)
+			continue;
+		for (int r = 1; r < table_rows; r++)
+		{
+			mpfr_t val;
+			mpfr_init_set(val, table[r][c + 1], MPFR_RNDN);
+			if (mpfr_cmp_ui(val, 0) != 0)
+			{
+				if (mpfr_cmp_si(val, 1) == 0)
+				{
+					is_basic = 1;
+				}
+				else
+				{
+					is_basic = 0;
+					pivot_col = c + 1;
+					break;
+				}
+			}
+			mpfr_clear(val);
+		}
+		if (!is_basic)
+			break;
+	}
+
+	// pivot again if possible
+	if (!is_basic)
+	{
+		fprintf(output_file, "\\newpage\n\\section*{Multiple Solutions}\n");
+		fprintf(output_file, "A non-basic variable has a 0 on its first row, allowing us to pivot again and find another optimal solution.\n\n");
+		pivot(table, pivot_col, pivoting);
+		print_results(table);
+	}
+}
+
 void simplex(mpfr_t **table)
 {
 	if (intermediate_tables)
 		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
 
 	is_degenerate = 0;
-	int safe = 0;
 	int pivoting = 0;
 
 	// Artificial variables canonization
@@ -394,7 +584,9 @@ void simplex(mpfr_t **table)
 
 		j++;
 	}
-	while (1)
+
+	int can_pivot = 1;
+	while (can_pivot == 1)
 	{
 		pivoting++;
 		int pivot_col = 1; // The most negative/positive column (index, not value)
@@ -418,161 +610,28 @@ void simplex(mpfr_t **table)
 		if (mode == 0 && mpfr_cmp(table[0][pivot_col], zero) >= 0)
 		{
 			mpfr_clear(zero);
+			can_pivot = 0;
 			break;
 		}
 		if (mode == 1 && mpfr_cmp(table[0][pivot_col], zero) <= 0)
 		{
 			mpfr_clear(zero);
+			can_pivot = 0;
 			break;
 		}
+		mpfr_clear(zero);
 
-		if (intermediate_tables) // Print intermediate tables data
-		{
-			fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
-			if (mode)
-				fprintf(output_file, "\\subsection*{Most Positive}\n");
-			else
-				fprintf(output_file, "\\subsubsection*{Most Negative}\n");
-			mpfr_fprintf(output_file, "Column %d (%.2Rf)\n", pivot_col + 1, table[0][pivot_col]);
-			print_simplex_table(table, 0, pivot_col, 0);
-			fprintf(output_file, "\\subsubsection*{Fractions}\n");
-			print_simplex_table(table, -1, -1, pivot_col);
-		}
+		can_pivot = pivot(table, pivot_col, pivoting);
 
-		int smallest_frac = 1; // The smallest fraction row
-		int is_unbounded = 1;
-		mpfr_t frac, tmp;
-		mpfr_inits2(256, frac, tmp, zero, NULL);
-		mpfr_set_ui(zero, 0, MPFR_RNDN);
-		for (int i = 1; i < table_rows; i++)
-		{
-			mpfr_div(frac, table[i][table_cols - 1], table[i][pivot_col], MPFR_RNDN);
-
-			if (intermediate_tables)
-			{
-				mpfr_fprintf(output_file,
-							 "$%.2Rf / %.2Rf = %.2Rf$ \\\\\n",
-							 table[i][table_cols - 1],
-							 table[i][pivot_col],
-							 frac);
-			}
-			if (mpfr_cmp(table[i][table_cols - 1], zero) < 0 ||
-				mpfr_cmp(table[i][pivot_col], zero) < 0)
-			{
-				continue;
-			}
-			else
-			{
-				is_unbounded = 0;
-			}
-			mpfr_div(tmp,
-					 table[smallest_frac][table_cols - 1],
-					 table[smallest_frac][pivot_col],
-					 MPFR_RNDN);
-			if (mpfr_cmp(frac, tmp) <= 0 ||
-				mpfr_cmp(table[smallest_frac][table_cols - 1], zero) < 0 ||
-				mpfr_cmp(table[smallest_frac][pivot_col], zero) < 0)
-			{
-				smallest_frac = i;
-			}
-		}
-		mpfr_clears(frac, tmp, zero, NULL);
-
-		if (is_unbounded)
-		{
-			char varbuf[12];
-			char *var_name;
-			if (pivot_col < variable_amount + 1)
-				var_name = variable_names[pivot_col - 1];
-			else if (pivot_col < variable_amount + slackv_amount + 1)
-			{
-				snprintf(varbuf, sizeof(varbuf), "$s_%d$", pivot_col - variable_amount);
-				var_name = varbuf;
-			}
-			else if (pivot_col < variable_amount + slackv_amount + excessv_amount + 1)
-			{
-				snprintf(varbuf, sizeof(varbuf), "$e_%d$", pivot_col - variable_amount - slackv_amount);
-				var_name = varbuf;
-			}
-			else
-			{
-				snprintf(varbuf, sizeof(varbuf), "unknown");
-				var_name = varbuf;
-			}
-			report_unbounded(var_name);
-			return;
-		}
-		if (intermediate_tables)
-		{
-			mpfr_t ratio;
-			mpfr_init2(ratio, 256);
-			mpfr_div(ratio,
-					 table[smallest_frac][table_cols - 1],
-					 table[smallest_frac][pivot_col],
-					 MPFR_RNDN);
-			mpfr_fprintf(output_file, "Smallest fraction: %.2Rf", ratio);
-			mpfr_clear(ratio);
-			fprintf(output_file, " $\\rightarrow$ Pivot: row %d", smallest_frac + 1);
-			fprintf(output_file, "\\subsubsection*{Pivot}\n");
-			print_simplex_table(table, smallest_frac, pivot_col, 0);
-		}
-
-		// Make a 1 on smallest frac cell
-		mpfr_t div_value;
-		mpfr_init2(div_value, 256);
-		mpfr_set(div_value, table[smallest_frac][pivot_col], MPFR_RNDN);
-		for (int i = 0; i < table_cols; i++)
-		{
-			mpfr_div(table[smallest_frac][i],
-					 table[smallest_frac][i],
-					 div_value,
-					 MPFR_RNDN);
-		}
-		if (intermediate_tables)
-		{
-			fprintf(output_file, "\\subsubsection*{Canonization}\n", pivoting);
-			mpfr_fprintf(output_file, "$R_%d \\leftarrow R_%d/%.2Rf$ \\\\", smallest_frac + 1, smallest_frac + 1, div_value);
-			print_simplex_table(table, smallest_frac, -1, 0);
-		}
-		mpfr_clear(div_value);
-
-		// Convert col to 0s
-		for (int i = 0; i < table_rows; i++)
-		{
-			if (i == smallest_frac)
-				continue;
-
-			mpfr_t mult_value, tmp;
-			mpfr_inits2(256, mult_value, tmp, NULL);
-			mpfr_neg(mult_value, table[i][pivot_col], MPFR_RNDN);
-			for (int j = 0; j < table_cols; j++)
-			{
-				mpfr_mul(tmp, mult_value, table[smallest_frac][j], MPFR_RNDN);
-				mpfr_add(table[i][j], table[i][j], tmp, MPFR_RNDN);
-			}
-
-			if (intermediate_tables)
-			{
-				mpfr_fprintf(output_file,
-							 "$R_%d \\leftarrow R_%d + %.2Rf R_%d$ \\\\\n",
-							 i + 1, i + 1, mult_value, smallest_frac + 1);
-				print_simplex_table(table, i, -1, 0);
-			}
-			mpfr_clears(mult_value, tmp, NULL);
-		}
-		if (intermediate_tables)
-		{
-			fprintf(output_file, "\\subsubsection*{Pivot Result}\n");
-			print_simplex_table(table, -1, -1, 0);
-			check_degeneracy(table);
-		}
-		if (intermediate_tables)
-			fprintf(output_file, "\n\\newpage\n");
-		safe++;
-		if (safe > 50)
+		if (pivoting > 51)
 			break;
 	}
-	print_results(table);
+	g_print("Can %d\n", can_pivot);
+	if (!can_pivot)
+	{
+		print_results(table);
+		multiple_solutions(table, pivoting);
+	}
 }
 
 static void adapt_entry_width(GtkEditable *editable, gpointer user_data)
