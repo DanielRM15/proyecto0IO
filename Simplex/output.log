@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.15)  17 NOV 2025 10:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.15)  17 NOV 2025 19:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -170,58 +170,58 @@ LaTeX Font Info:    ... okay on input line 7.
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 23.
+(Font)              <12> on input line 22.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 23.
+(Font)              <8> on input line 22.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 23.
+(Font)              <6> on input line 22.
  [1]
-Underfull \hbox (badness 10000) in paragraph at lines 79--88
+Underfull \hbox (badness 10000) in paragraph at lines 92--101
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 89--98
+Underfull \hbox (badness 10000) in paragraph at lines 102--112
 
  []
 
 [2]
-Underfull \hbox (badness 10000) in paragraph at lines 99--108
+Underfull \hbox (badness 10000) in paragraph at lines 113--123
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 109--118
+Underfull \hbox (badness 10000) in paragraph at lines 124--134
 
  []
 
 [3]
-Underfull \hbox (badness 10000) in paragraph at lines 167--176
+Underfull \hbox (badness 10000) in paragraph at lines 186--195
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 177--186
+Underfull \hbox (badness 10000) in paragraph at lines 196--206
 
  []
 
 [4]
-Underfull \hbox (badness 10000) in paragraph at lines 187--196
+Underfull \hbox (badness 10000) in paragraph at lines 207--217
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 197--206
+Underfull \hbox (badness 10000) in paragraph at lines 218--228
 
  []
 
 [5]
-Underfull \hbox (badness 10000) in paragraph at lines 236--238
+Underfull \hbox (badness 10000) in paragraph at lines 258--260
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 240--243
+Underfull \hbox (badness 10000) in paragraph at lines 262--274
 
  []
 
@@ -240,7 +240,7 @@ i12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb
 ></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/
 share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/te
 xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on output.pdf (7 pages, 77831 bytes).
+Output written on output.pdf (7 pages, 78231 bytes).
 PDF statistics:
  58 PDF objects out of 1000 (max. 8388607)
  36 compressed objects within 1 object stream

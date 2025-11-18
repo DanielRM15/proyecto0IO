@@ -17,7 +17,17 @@
     \vfill
 \end{titlepage}
 \newpage
-\section*{puertas ventanas}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& -3.00& -5.00& 0.00& 0.00& 0.00& 0.00\\
+& 0.00& 1.00& 0.00& 1.00& 0.00& 0.00& 4.00\\
+& 0.00& 0.00& 2.00& 0.00& 1.00& 0.00& 12.00\\
+& 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
+\end{tabular}
+\end{table}
+\section*{p y v}
 Maximize
 \begin{center}
 Z = 3.00$x_1$ + 5.00$x_2$ 
@@ -64,7 +74,10 @@ Column 3 (-5.00)
 & 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00& 9.00\\
 \end{tabular}
 \end{table}
-$4.00 / 0.00 = inf$ \\$12.00 / 2.00 = 6.00$ \\$18.00 / 2.00 = 9.00$ \\Smallest fraction: 6.00 $\rightarrow$ Pivot: row 3\subsubsection*{Pivot}
+$4.00 / 0.00 = inf$ \\
+$12.00 / 2.00 = 6.00$ \\
+$18.00 / 2.00 = 9.00$ \\
+Smallest fraction: 6.00 $\rightarrow$ Pivot: row 3\subsubsection*{Pivot}
 \begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
@@ -86,7 +99,8 @@ $R_3 \leftarrow R_3/2.00$ \\\begin{table}[H]
 & 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
-$R_1 \leftarrow R_1 + 5.00 R_3$ \\\begin{table}[H]
+$R_1 \leftarrow R_1 + 5.00 R_3$ \\
+\begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
 & Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
@@ -96,7 +110,8 @@ $R_1 \leftarrow R_1 + 5.00 R_3$ \\\begin{table}[H]
 & 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
-$R_2 \leftarrow R_2 + -0.00 R_3$ \\\begin{table}[H]
+$R_2 \leftarrow R_2 + -0.00 R_3$ \\
+\begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
 & Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
@@ -106,7 +121,8 @@ $R_2 \leftarrow R_2 + -0.00 R_3$ \\\begin{table}[H]
 & 0.00& 3.00& 2.00& 0.00& 0.00& 1.00& 18.00\\
 \end{tabular}
 \end{table}
-$R_4 \leftarrow R_4 + -2.00 R_3$ \\\begin{table}[H]
+$R_4 \leftarrow R_4 + -2.00 R_3$ \\
+\begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
 & Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
@@ -152,7 +168,10 @@ Column 2 (-3.00)
 & 0.00& 3.00& 0.00& 0.00& -1.00& 1.00& 6.00& 2.00\\
 \end{tabular}
 \end{table}
-$4.00 / 1.00 = 4.00$ \\$6.00 / 0.00 = inf$ \\$6.00 / 3.00 = 2.00$ \\Smallest fraction: 2.00 $\rightarrow$ Pivot: row 4\subsubsection*{Pivot}
+$4.00 / 1.00 = 4.00$ \\
+$6.00 / 0.00 = inf$ \\
+$6.00 / 3.00 = 2.00$ \\
+Smallest fraction: 2.00 $\rightarrow$ Pivot: row 4\subsubsection*{Pivot}
 \begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
@@ -174,7 +193,8 @@ $R_4 \leftarrow R_4/3.00$ \\\begin{table}[H]
 & \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 1.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} 0.00& \cellcolor{cyan!30} -0.33& \cellcolor{cyan!30} 0.33& \cellcolor{cyan!30} 2.00\\
 \end{tabular}
 \end{table}
-$R_1 \leftarrow R_1 + 3.00 R_4$ \\\begin{table}[H]
+$R_1 \leftarrow R_1 + 3.00 R_4$ \\
+\begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
 & Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
@@ -184,7 +204,8 @@ $R_1 \leftarrow R_1 + 3.00 R_4$ \\\begin{table}[H]
 & 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
 \end{tabular}
 \end{table}
-$R_2 \leftarrow R_2 + -1.00 R_4$ \\\begin{table}[H]
+$R_2 \leftarrow R_2 + -1.00 R_4$ \\
+\begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
 & Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
@@ -194,7 +215,8 @@ $R_2 \leftarrow R_2 + -1.00 R_4$ \\\begin{table}[H]
 & 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
 \end{tabular}
 \end{table}
-$R_3 \leftarrow R_3 + -0.00 R_4$ \\\begin{table}[H]
+$R_3 \leftarrow R_3 + -0.00 R_4$ \\
+\begin{table}[H]
 \centering
 \begin{tabular}{c|rrrrrrr}
 & Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
@@ -240,4 +262,14 @@ $x_2$ = 6.00 \\
 $s_1$ = 2.00 \\
 $s_2$ = 0.00 \\
 $s_3$ = 0.00 \\
+\begin{table}[H]
+\centering
+\begin{tabular}{c|rrrrrrr}
+& Z & $x_1$& $x_2$& $s_1$& $s_2$& $s_3$& b\\ \hline
+& 0.00& 0.00& 0.00& 0.00& 1.50& 1.00& 36.00\\
+& 0.00& 0.00& 0.00& 1.00& 0.33& -0.33& 2.00\\
+& 0.00& 0.00& 1.00& 0.00& 0.50& 0.00& 6.00\\
+& 0.00& 1.00& 0.00& 0.00& -0.33& 0.33& 2.00\\
+\end{tabular}
+\end{table}
 \end{document}

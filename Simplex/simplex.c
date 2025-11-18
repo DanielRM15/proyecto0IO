@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <mpfr.h>
 
 FILE *output_file;
 GtkWidget *main_window;
@@ -58,7 +59,7 @@ void setup_latex()
 			"\\newpage\n");
 }
 
-void print_simplex_table(int highlight_row, int highlight_col, int print_fractions)
+void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, int print_fractions)
 {
 	fprintf(output_file, "\\begin{table}[H]\n");
 	fprintf(output_file, "\\centering\n");
@@ -90,13 +91,19 @@ void print_simplex_table(int highlight_row, int highlight_col, int print_fractio
 			{
 				fprintf(output_file, "\\cellcolor{cyan!30} ");
 			}
-			fprintf(output_file, "%.2f", simplex_table[i][j]);
+			mpfr_fprintf(output_file, "%.2Rf", table[i][j]);
 		}
 		if (print_fractions)
 		{
 			fprintf(output_file, "& ");
 			if (i > 0)
-				fprintf(output_file, "%.2f", simplex_table[i][table_cols - 1] / simplex_table[i][print_fractions]);
+			{
+				mpfr_t result;
+				mpfr_init(result);
+				mpfr_div(result, table[i][table_cols - 1], table[i][print_fractions], MPFR_RNDN);
+				mpfr_fprintf(output_file, "%.2Rf", result);
+				mpfr_clear(result);
+			}
 		}
 		fprintf(output_file, "\\\\\n");
 	}
@@ -104,8 +111,9 @@ void print_simplex_table(int highlight_row, int highlight_col, int print_fractio
 	fprintf(output_file, "\\end{table}\n");
 }
 
-void print_problem_model()
+void print_problem_model(mpfr_t **table)
 {
+	g_print("Print!\n");
 	fprintf(output_file, "\\section*{");
 	fprintf(output_file, problem_name);
 	fprintf(output_file, "}\n");
@@ -116,29 +124,33 @@ void print_problem_model()
 
 	for (int i = 1; i <= variable_amount; i++)
 	{
-		double val = -simplex_table[0][i];
-		if (val < 0)
+		mpfr_t val;
+		mpfr_init_set(val, table[0][i], MPFR_RNDN);
+		mpfr_neg(val, val, MPFR_RNDN);
+		if (mpfr_sgn(val) < 0)
 		{
 			fprintf(output_file, "- ");
-			val *= -1;
+			mpfr_neg(val, val, MPFR_RNDN);
 		}
 		else
 		{
 			if (i > 1)
 				fprintf(output_file, "+ ");
 		}
-		fprintf(output_file, "%.2f%s ", val, variable_names[i - 1]);
+		mpfr_fprintf(output_file, "%.2Rf%s ", val, variable_names[i - 1]);
+		mpfr_clear(val);
 	}
 	fprintf(output_file, "\n\\end{center}\nSubject to\n\\begin{center}\n");
 	for (int i = 1; i <= constraint_amount; i++)
 	{
 		for (int j = 0; j < variable_amount; j++)
 		{
-			double val = simplex_table[i][j + 1];
-			if (val < 0)
+			mpfr_t val;
+			mpfr_init_set(val, table[i][j + 1], MPFR_RNDN);
+			if (mpfr_sgn(val) < 0)
 			{
 				fprintf(output_file, "- ");
-				val *= -1;
+				mpfr_neg(val, val, MPFR_RNDN);
 			}
 			else
 			{
@@ -147,64 +159,80 @@ void print_problem_model()
 			}
 
 			if (j < variable_amount)
-				fprintf(output_file, "%.2f%s ", val, variable_names[j]);
+				mpfr_fprintf(output_file, "%.2Rf%s ", val, variable_names[j]);
 			// else // Print slack variables
 			// 	fprintf(output_file, "%.2f$s_%d$ ", val, j - variable_amount + 1);
+			mpfr_clear(val);
 		}
-		double val = simplex_table[i][table_cols - 1];
-		fprintf(output_file, "$\\leq$ %.2f \\\\\n", val);
+		mpfr_t val;
+		mpfr_init_set(val, table[i][table_cols - 1], MPFR_RNDN);
+		mpfr_fprintf(output_file, "$\\leq$ %.2Rf \\\\\n", val);
+		mpfr_clear(val);
 	}
 	fprintf(output_file, "\\end{center}\n");
 	fprintf(output_file, "Simplex Table\n");
-	print_simplex_table(-1, -1, 0);
+	print_simplex_table(table, -1, -1, 0);
 }
 
-void print_results()
+void print_results(mpfr_t **table)
 {
 	fprintf(output_file, "\\section*{Results}\n");
-	print_simplex_table(-1, -1, 0);
+	print_simplex_table(table, -1, -1, 0);
 	fprintf(output_file, "\n\\subsection*{Objective Value}\n");
-	fprintf(output_file, "Z = %.2f\n", simplex_table[0][table_cols - 1]);
+	mpfr_fprintf(output_file, "Z = %.2Rf\n", table[0][table_cols - 1]);
 	fprintf(output_file, "\n\\subsection*{Variables}\n");
+
+	mpfr_t var_value, zero, one;
+	mpfr_inits2(256, var_value, zero, one, NULL);
+	mpfr_set_ui(zero, 0, MPFR_RNDN);
+	mpfr_set_ui(one, 1, MPFR_RNDN);
 	for (int i = 0; i < variable_amount; i++)
 	{
-		double var_value = 0;
+		mpfr_set_ui(var_value, 0, MPFR_RNDN); // var_value = 0
+
 		for (int j = 0; j < constraint_amount + 1; j++)
 		{
-			if (simplex_table[j][i + 1] != 0)
+			if (mpfr_cmp(table[j][i + 1], zero) != 0)
 			{
-				if (simplex_table[j][i + 1] != 1)
+				if (mpfr_cmp(table[j][i + 1], one) != 0)
 				{
-					var_value = 0;
+					mpfr_set_ui(var_value, 0, MPFR_RNDN); // not a basic variable
 					break;
 				}
 				else
-					var_value = simplex_table[j][table_cols - 1];
+				{
+					mpfr_set(var_value, table[j][table_cols - 1], MPFR_RNDN);
+				}
 			}
 		}
-		fprintf(output_file, variable_names[i]);
-		fprintf(output_file, " = %.2f \\\\\n", var_value);
+		fprintf(output_file, "%s = ", variable_names[i]);
+		mpfr_fprintf(output_file, "%.2Rf \\\\\n", var_value);
 	}
+
 	fprintf(output_file, "\n\\subsection*{Slack or Surplus}\n");
 	for (int i = 0; i < constraint_amount; i++)
 	{
-		double var_value = 0;
+		mpfr_set_ui(var_value, 0, MPFR_RNDN); // default = 0
+
 		for (int j = 0; j < constraint_amount + 1; j++)
 		{
-			if (simplex_table[j][i + variable_amount + 1] != 0)
+			if (mpfr_cmp(table[j][i + variable_amount + 1], zero) != 0)
 			{
-				if (simplex_table[j][i + variable_amount + 1] != 1)
+				if (mpfr_cmp(table[j][i + variable_amount + 1], one) != 0)
 				{
-					var_value = 0;
+					mpfr_set_ui(var_value, 0, MPFR_RNDN);
 					break;
 				}
 				else
-					var_value = simplex_table[j][table_cols - 1];
+				{
+					mpfr_set(var_value, table[j][table_cols - 1], MPFR_RNDN);
+				}
 			}
 		}
-		fprintf(output_file, "$s_%d$", i + 1);
-		fprintf(output_file, " = %.2f \\\\\n", var_value);
+		fprintf(output_file, "$s_%d$ = ", i + 1);
+		mpfr_fprintf(output_file, "%.2Rf \\\\\n", var_value);
 	}
+	mpfr_clears(var_value, zero, one, NULL);
 }
 
 void report_unbounded(char *var_name)
@@ -259,220 +287,7 @@ void check_degeneracy()
 	}
 }
 
-void multiple_solutions(int pivoting)
-{
-	sol1 = malloc(variable_amount * sizeof(double));
-	sol2 = malloc(variable_amount * sizeof(double));
-
-	for (int i = 0; i < variable_amount; i++)
-	{
-		double var_value = 0;
-		for (int j = 0; j < constraint_amount + 1; j++)
-		{
-			if (simplex_table[j][i + 1] != 0)
-			{
-				if (simplex_table[j][i + 1] != 1)
-				{
-					var_value = 0;
-					break;
-				}
-				else
-					var_value = simplex_table[j][table_cols - 1];
-			}
-		}
-		sol1[i] = var_value;
-	}
-
-	// Check for multiple solutions
-	int is_basic = 1;
-	int pivot_col = 0;
-	for (int i = 0; i < variable_amount + constraint_amount; i++)
-	{
-		if (fabs(simplex_table[0][i + 1]) > 1e-9)
-			continue;
-		for (int j = 1; j < table_rows; j++)
-		{
-			double val = simplex_table[j][i + 1];
-			if (fabs(val) < 1e-9)
-				val = 0.0;
-			if (val != 0.0)
-			{
-				if (fabs(val - 1.0) < 1e-9)
-				{
-					is_basic = 1;
-				}
-				else
-				{
-					is_basic = 0;
-					pivot_col = i + 1;
-					break;
-				}
-			}
-		}
-		if (!is_basic)
-			break;
-	}
-
-	// pivot again if possible
-	if (!is_basic)
-	{
-		fprintf(output_file, "\\newpage\n\\section*{Multiple Solutions}\n");
-		fprintf(output_file, "A non-basic variable has a 0 on its first row, allowing us to pivot again and find another optimal solution.\n\n");
-
-		if (intermediate_tables) // Print intermediate tables data
-		{
-			fprintf(output_file, "\\subsection*{Pivoting %d}", pivoting);
-			fprintf(output_file, "Column %d (%.2f)\n", pivot_col + 1, simplex_table[0][pivot_col]);
-			print_simplex_table(0, pivot_col, 0);
-			fprintf(output_file, "\\subsubsection*{Fractions}\n");
-		}
-
-		if (intermediate_tables)
-			print_simplex_table(-1, -1, pivot_col);
-		int smallest_frac = 1; // The smallest fraction row
-		int is_unbounded = 1;
-		for (int i = 1; i < table_rows; i++)
-		{
-			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
-			if (intermediate_tables)
-				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
-			if (simplex_table[i][table_cols - 1] < 0 || simplex_table[i][pivot_col] < 0)
-				continue;
-			else
-				is_unbounded = 0;
-			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] ||
-				simplex_table[smallest_frac][table_cols - 1] < 0 || simplex_table[smallest_frac][pivot_col] < 0)
-				smallest_frac = i;
-		}
-		if (is_unbounded)
-		{
-			char varbuf[12];
-			char *var_name;
-			if (pivot_col < variable_amount + 1)
-				var_name = variable_names[pivot_col - 1];
-			else
-			{
-				snprintf(varbuf, sizeof(varbuf), "$s_%d$", pivot_col - variable_amount);
-				var_name = varbuf;
-			}
-			report_unbounded(var_name);
-			return;
-		}
-		if (intermediate_tables)
-		{
-			fprintf(output_file, "Smallest fraction: %.2f", simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col]);
-			fprintf(output_file, " $\\rightarrow$ Pivot: row %d", smallest_frac + 1);
-			fprintf(output_file, "\\subsubsection*{Pivot}\n");
-			print_simplex_table(smallest_frac, pivot_col, 0);
-		}
-
-		// Make a 1 on smallest frac cell
-		double div_value = simplex_table[smallest_frac][pivot_col];
-		for (int i = 0; i < table_cols; i++)
-		{
-			simplex_table[smallest_frac][i] = simplex_table[smallest_frac][i] / div_value;
-		}
-		if (intermediate_tables)
-		{
-			fprintf(output_file, "\\subsubsection*{Canonization}\n", pivoting);
-			fprintf(output_file, "$R_%d \\leftarrow R_%d/%.2f$ \\\\", smallest_frac + 1, smallest_frac + 1, div_value);
-			print_simplex_table(smallest_frac, -1, 0);
-		}
-
-		// Convert col to 0s
-		for (int i = 0; i < table_rows; i++)
-		{
-			if (i == smallest_frac)
-				continue;
-
-			double mult_value = -simplex_table[i][pivot_col];
-			for (int j = 0; j < table_cols; j++)
-			{
-				simplex_table[i][j] = simplex_table[i][j] + mult_value * simplex_table[smallest_frac][j];
-			}
-			if (intermediate_tables)
-			{
-				fprintf(output_file, "$R_%d \\leftarrow R_%d + %.2f R_%d$ \\\\", i + 1, i + 1, mult_value, smallest_frac + 1);
-				print_simplex_table(i, -1, 0);
-			}
-		}
-		if (intermediate_tables)
-		{
-			fprintf(output_file, "\\subsubsection*{Pivot Result}\n");
-			print_simplex_table(-1, -1, 0);
-		}
-		check_degeneracy();
-		if (intermediate_tables)
-			fprintf(output_file, "\n\\newpage\n");
-		print_results();
-
-		for (int i = 0; i < variable_amount; i++)
-		{
-			double var_value = 0;
-			for (int j = 0; j < constraint_amount + 1; j++)
-			{
-				if (simplex_table[j][i + 1] != 0)
-				{
-					if (simplex_table[j][i + 1] != 1)
-					{
-						var_value = 0;
-						break;
-					}
-					else
-						var_value = simplex_table[j][table_cols - 1];
-				}
-			}
-			sol2[i] = var_value;
-		}
-		fprintf(output_file, "\\newpage\n\\section*{More Solutions}\n");
-		fprintf(output_file, "$a \\times s1 + (1 - a) \\times s2$ \\\\\n");
-		double a = 0.3;
-		double s1[variable_amount];
-		double s2[variable_amount];
-		for (int i = 0; i < variable_amount; i++)
-		{
-			s1[i] = sol1[i] * a;
-			s2[i] = (1 - a) * sol2[i];
-		}
-		fprintf(output_file, "Multiple solution 1: \\\\\n");
-		fprintf(output_file, "$a = 0.3$ \\\\\n");
-		for (int i = 0; i < variable_amount; i++)
-		{
-			double x = s1[i] + s2[i];
-			fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
-		}
-		a = 0.5;
-		for (int i = 0; i < variable_amount; i++)
-		{
-			s1[i] = sol1[i] * a;
-			s2[i] = (1 - a) * sol2[i];
-		}
-		fprintf(output_file, "Multiple solution 2: \\\\\n");
-		fprintf(output_file, "$a = 0.5$ \\\\\n");
-		for (int i = 0; i < variable_amount; i++)
-		{
-			double x = s1[i] + s2[i];
-			fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
-		}
-		a = 0.7;
-		for (int i = 0; i < variable_amount; i++)
-		{
-			s1[i] = sol1[i] * a;
-			s2[i] = (1 - a) * sol2[i];
-		}
-		fprintf(output_file, "Multiple solution 3: \\\\\n");
-		fprintf(output_file, "$a = 0.7$ \\\\\n");
-		for (int i = 0; i < variable_amount; i++)
-		{
-			double x = s1[i] + s2[i];
-			fprintf(output_file, "%s $= %.2f$ \\\\\n", variable_names[i], x);
-		}
-		free(sol1);
-		free(sol2);
-	}
-}
-
-void simplex()
+void simplex(mpfr_t **table)
 {
 	if (intermediate_tables)
 		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
@@ -488,20 +303,28 @@ void simplex()
 		{
 			if (mode == 0)
 			{
-				if (simplex_table[0][i] < simplex_table[0][pivot_col])
+				if (mpfr_cmp(table[0][i], table[0][pivot_col]) < 0)
 					pivot_col = i;
 			}
 			else
 			{
-				if (simplex_table[0][i] > simplex_table[0][pivot_col])
+				if (mpfr_cmp(table[0][i], table[0][pivot_col]) > 0)
 					pivot_col = i;
 			}
 		}
 
-		if (mode == 0 && simplex_table[0][pivot_col] >= 0)
+		mpfr_t zero;
+		mpfr_init_set_ui(zero, 0, MPFR_RNDN);
+		if (mode == 0 && mpfr_cmp(table[0][pivot_col], zero) >= 0)
+		{
+			mpfr_clear(zero);
 			break;
-		if (mode == 1 && simplex_table[0][pivot_col] <= 0)
+		}
+		if (mode == 1 && mpfr_cmp(table[0][pivot_col], zero) <= 0)
+		{
+			mpfr_clear(zero);
 			break;
+		}
 
 		if (intermediate_tables) // Print intermediate tables data
 		{
@@ -510,28 +333,51 @@ void simplex()
 				fprintf(output_file, "\\subsection*{Most Positive}\n");
 			else
 				fprintf(output_file, "\\subsubsection*{Most Negative}\n");
-			fprintf(output_file, "Column %d (%.2f)\n", pivot_col + 1, simplex_table[0][pivot_col]);
-			print_simplex_table(0, pivot_col, 0);
+			mpfr_fprintf(output_file, "Column %d (%.2Rf)\n", pivot_col + 1, table[0][pivot_col]);
+			print_simplex_table(table, 0, pivot_col, 0);
 			fprintf(output_file, "\\subsubsection*{Fractions}\n");
+			print_simplex_table(table, -1, -1, pivot_col);
 		}
 
-		if (intermediate_tables)
-			print_simplex_table(-1, -1, pivot_col);
 		int smallest_frac = 1; // The smallest fraction row
 		int is_unbounded = 1;
+		mpfr_t frac, tmp;
+		mpfr_inits2(256, frac, tmp, zero, NULL);
+		mpfr_set_ui(zero, 0, MPFR_RNDN);
 		for (int i = 1; i < table_rows; i++)
 		{
-			double frac = simplex_table[i][table_cols - 1] / simplex_table[i][pivot_col];
+			mpfr_div(frac, table[i][table_cols - 1], table[i][pivot_col], MPFR_RNDN);
+
 			if (intermediate_tables)
-				fprintf(output_file, "$%.2f / %.2f = %.2f$ \\\\", simplex_table[i][table_cols - 1], simplex_table[i][pivot_col], frac);
-			if (simplex_table[i][table_cols - 1] < 0 || simplex_table[i][pivot_col] < 0)
+			{
+				mpfr_fprintf(output_file,
+							 "$%.2Rf / %.2Rf = %.2Rf$ \\\\\n",
+							 table[i][table_cols - 1],
+							 table[i][pivot_col],
+							 frac);
+			}
+			if (mpfr_cmp(table[i][table_cols - 1], zero) < 0 ||
+				mpfr_cmp(table[i][pivot_col], zero) < 0)
+			{
 				continue;
+			}
 			else
+			{
 				is_unbounded = 0;
-			if (frac <= simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col] ||
-				simplex_table[smallest_frac][table_cols - 1] < 0 || simplex_table[smallest_frac][pivot_col] < 0)
+			}
+			mpfr_div(tmp,
+					 table[smallest_frac][table_cols - 1],
+					 table[smallest_frac][pivot_col],
+					 MPFR_RNDN);
+			if (mpfr_cmp(frac, tmp) <= 0 ||
+				mpfr_cmp(table[smallest_frac][table_cols - 1], zero) < 0 ||
+				mpfr_cmp(table[smallest_frac][pivot_col], zero) < 0)
+			{
 				smallest_frac = i;
+			}
 		}
+		mpfr_clears(frac, tmp, zero, NULL);
+
 		if (is_unbounded)
 		{
 			char varbuf[12];
@@ -543,29 +389,42 @@ void simplex()
 				snprintf(varbuf, sizeof(varbuf), "$s_%d$", pivot_col - variable_amount);
 				var_name = varbuf;
 			}
-			report_unbounded(var_name);
+			// report_unbounded(var_name);
 			return;
 		}
 		if (intermediate_tables)
 		{
-			fprintf(output_file, "Smallest fraction: %.2f", simplex_table[smallest_frac][table_cols - 1] / simplex_table[smallest_frac][pivot_col]);
+			mpfr_t ratio;
+			mpfr_init2(ratio, 256);
+			mpfr_div(ratio,
+					 table[smallest_frac][table_cols - 1],
+					 table[smallest_frac][pivot_col],
+					 MPFR_RNDN);
+			mpfr_fprintf(output_file, "Smallest fraction: %.2Rf", ratio);
+			mpfr_clear(ratio);
 			fprintf(output_file, " $\\rightarrow$ Pivot: row %d", smallest_frac + 1);
 			fprintf(output_file, "\\subsubsection*{Pivot}\n");
-			print_simplex_table(smallest_frac, pivot_col, 0);
+			print_simplex_table(table, smallest_frac, pivot_col, 0);
 		}
 
 		// Make a 1 on smallest frac cell
-		double div_value = simplex_table[smallest_frac][pivot_col];
+		mpfr_t div_value;
+		mpfr_init2(div_value, 256);
+		mpfr_set(div_value, table[smallest_frac][pivot_col], MPFR_RNDN);
 		for (int i = 0; i < table_cols; i++)
 		{
-			simplex_table[smallest_frac][i] = simplex_table[smallest_frac][i] / div_value;
+			mpfr_div(table[smallest_frac][i],
+					 table[smallest_frac][i],
+					 div_value,
+					 MPFR_RNDN);
 		}
 		if (intermediate_tables)
 		{
 			fprintf(output_file, "\\subsubsection*{Canonization}\n", pivoting);
-			fprintf(output_file, "$R_%d \\leftarrow R_%d/%.2f$ \\\\", smallest_frac + 1, smallest_frac + 1, div_value);
-			print_simplex_table(smallest_frac, -1, 0);
+			mpfr_fprintf(output_file, "$R_%d \\leftarrow R_%d/%.2Rf$ \\\\", smallest_frac + 1, smallest_frac + 1, div_value);
+			print_simplex_table(table, smallest_frac, -1, 0);
 		}
+		mpfr_clear(div_value);
 
 		// Convert col to 0s
 		for (int i = 0; i < table_rows; i++)
@@ -573,31 +432,37 @@ void simplex()
 			if (i == smallest_frac)
 				continue;
 
-			double mult_value = -simplex_table[i][pivot_col];
+			mpfr_t mult_value, tmp;
+			mpfr_inits2(256, mult_value, tmp, NULL);
+			mpfr_neg(mult_value, table[i][pivot_col], MPFR_RNDN);
 			for (int j = 0; j < table_cols; j++)
 			{
-				simplex_table[i][j] = simplex_table[i][j] + mult_value * simplex_table[smallest_frac][j];
+				mpfr_mul(tmp, mult_value, table[smallest_frac][j], MPFR_RNDN);
+				mpfr_add(table[i][j], table[i][j], tmp, MPFR_RNDN);
 			}
+
 			if (intermediate_tables)
 			{
-				fprintf(output_file, "$R_%d \\leftarrow R_%d + %.2f R_%d$ \\\\", i + 1, i + 1, mult_value, smallest_frac + 1);
-				print_simplex_table(i, -1, 0);
+				mpfr_fprintf(output_file,
+							 "$R_%d \\leftarrow R_%d + %.2Rf R_%d$ \\\\\n",
+							 i + 1, i + 1, mult_value, smallest_frac + 1);
+				print_simplex_table(table, i, -1, 0);
 			}
+			mpfr_clears(mult_value, tmp, NULL);
 		}
 		if (intermediate_tables)
 		{
 			fprintf(output_file, "\\subsubsection*{Pivot Result}\n");
-			print_simplex_table(-1, -1, 0);
+			print_simplex_table(table, -1, -1, 0);
 		}
-		check_degeneracy();
+		// check_degeneracy();
 		if (intermediate_tables)
 			fprintf(output_file, "\n\\newpage\n");
 		safe++;
 		if (safe > 50)
 			break;
 	}
-	print_results();
-	multiple_solutions(pivoting);
+	print_results(table);
 }
 
 void save_data_to_file(const char *filename)
@@ -1068,12 +933,61 @@ void fill_simplex_table()
 	}
 }
 
+mpfr_t **fill_simplex_table_mpfr(mpfr_prec_t prec)
+{
+	mpfr_t **mtable = malloc(table_rows * sizeof(mpfr_t *));
+	for (int i = 0; i < table_rows; i++)
+	{
+		mtable[i] = malloc(table_cols * sizeof(mpfr_t));
+		for (int j = 0; j < table_cols; j++)
+		{
+			mpfr_init2(mtable[i][j], prec);
+			mpfr_set_d(mtable[i][j], 0.0, MPFR_RNDN);
+		}
+	}
+
+	for (int i = 0; i < table_rows; i++)
+	{
+		for (int j = 1; j < table_cols; j++)
+		{
+			if (j <= variable_amount)
+			{
+				if (spin_table && spin_table[i] && spin_table[i][j - 1] != NULL && i == 0)
+				{
+					double v = -1 * gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][j - 1]));
+					mpfr_set_d(mtable[i][j], v, MPFR_RNDN);
+				}
+				else if (spin_table && spin_table[i] && spin_table[i][j - 1] != NULL)
+				{
+					double v = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][j - 1]));
+					mpfr_set_d(mtable[i][j], v, MPFR_RNDN);
+				}
+			}
+			else if (j <= variable_amount + constraint_amount)
+			{
+				if (i == j - variable_amount)
+					mpfr_set_d(mtable[i][j], 1.0, MPFR_RNDN);
+			}
+			else if (j == table_cols - 1)
+			{
+				if (spin_table && spin_table[i] && spin_table[i][variable_amount] != NULL)
+				{
+					double v = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][variable_amount]));
+					mpfr_set_d(mtable[i][j], v, MPFR_RNDN);
+				}
+			}
+		}
+	}
+
+	return mtable;
+}
+
 void setup_simplex()
 {
 	variable_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
 	constraint_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
-
-	fill_simplex_table();
+	table_rows = constraint_amount + 1;
+	table_cols = variable_amount + constraint_amount + 2;
 
 	// Get variable names
 	for (int i = 0; i < variable_amount; i++)
@@ -1095,19 +1009,32 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 	}
 	problem_name = gtk_entry_get_text(GTK_ENTRY(problem_input));
 	setup_simplex();
+	mpfr_t **table = fill_simplex_table_mpfr(256);
 	setup_latex();
-	print_problem_model();
-	simplex();
+	print_problem_model(table);
+	simplex(table);
 	fprintf(output_file, "\\end{document}\n");
 	fclose(output_file);
 
+	if (table)
+	{
+		for (int i = 0; i < table_rows; i++)
+		{
+			if (table[i])
+			{
+				for (int j = 0; j < table_cols; j++)
+				{
+					mpfr_clear(table[i][j]);
+				}
+				free(table[i]);
+			}
+		}
+		free(table);
+		table = NULL;
+	}
+
 	system("pdflatex output.tex");
 	system("evince --presentation output.pdf &");
-
-	for (int i = 0; i < table_rows; i++)
-		free(simplex_table[i]);
-	free(simplex_table);
-	simplex_table = NULL;
 }
 
 int main(int argc, char *argv[])
