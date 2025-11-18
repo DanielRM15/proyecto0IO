@@ -12,6 +12,7 @@ GtkWidget *constraints_container;
 GtkWidget *problem_input; // problem name
 GtkWidget *variables_spin;
 GtkWidget *constraints_spin;
+GtkWidget *max_min_combo;
 GtkWidget **variable_entries;
 char *variable_names[15];
 
@@ -66,43 +67,49 @@ void setup_latex()
 
 void print_with_M(FILE *f, mpfr_t x)
 {
-	mpfr_t abs_x, abs_M, k, remainder, tmp;
-	mpfr_inits2(mpfr_get_prec(x), abs_x, abs_M, k, remainder, tmp, NULL);
+	mpfr_prec_t prec = mpfr_get_prec(x);
+
+	mpfr_t abs_x, k, k_int, remainder, tmp;
+	mpfr_inits2(prec, abs_x, k, k_int, remainder, tmp, NULL);
 
 	mpfr_abs(abs_x, x, MPFR_RNDN);
-	mpfr_abs(abs_M, M, MPFR_RNDN);
 
-	mpfr_t thousand;
-	mpfr_init_set_ui(thousand, 1000, MPFR_RNDN);
-	if (mpfr_cmp(abs_x, thousand) < 0)
+	// If small, just print the number
+	mpfr_t max_print_val;
+	mpfr_init_set_ui(max_print_val, 10000, MPFR_RNDN);
+	if (mpfr_cmp(abs_x, max_print_val) < 0)
 	{
-		mpfr_clear(thousand);
+		mpfr_clear(max_print_val);
 		mpfr_fprintf(f, "%.2Rf", x);
-		mpfr_clears(abs_x, abs_M, k, remainder, tmp, NULL);
+		mpfr_clears(abs_x, k, k_int, remainder, tmp, NULL);
 		return;
 	}
-	mpfr_clear(thousand);
+	mpfr_clear(max_print_val);
 
 	mpfr_div(k, x, M, MPFR_RNDN);
+	mpfr_round(k_int, k);
 
-	mpfr_floor(tmp, k);
-	mpfr_mul(remainder, tmp, M, MPFR_RNDN);
-	mpfr_sub(remainder, x, remainder, MPFR_RNDN);
+	// remainder = x - k_int * M
+	mpfr_mul(tmp, k_int, M, MPFR_RNDN);
+	mpfr_sub(remainder, x, tmp, MPFR_RNDN);
 
+	// Print remainder if non-zero
 	if (mpfr_cmp_ui(remainder, 0) != 0)
 	{
-		mpfr_fprintf(f, "%.2Rf ", remainder);
-		if (mpfr_cmp_ui(tmp, 0) != 0)
-			fprintf(f, "+ ");
+		mpfr_fprintf(f, "%.2Rf", remainder);
+		if (mpfr_cmp_ui(k_int, 0) != 0)
+			fprintf(f, " + ");
 	}
 
-	if (mpfr_cmp_ui(tmp, 1) == 0)
+	// Print M coefficient
+	if (mpfr_cmp_ui(k_int, 1) == 0)
 		fprintf(f, "M");
-	else if (mpfr_cmp_si(tmp, -1) == 0)
+	else if (mpfr_cmp_si(k_int, -1) == 0)
 		fprintf(f, "-M");
-	else if (mpfr_cmp_ui(tmp, 0) != 0)
-		mpfr_fprintf(f, "%.2RfM", tmp);
-	mpfr_clears(abs_x, abs_M, k, remainder, tmp, NULL);
+	else if (mpfr_cmp_ui(k_int, 0) != 0)
+		mpfr_fprintf(f, "%.2RfM", k_int);
+
+	mpfr_clears(abs_x, k, k_int, remainder, tmp, NULL);
 }
 
 void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, int print_fractions)
@@ -342,12 +349,60 @@ void check_degeneracy()
 
 void simplex(mpfr_t **table)
 {
+	g_print("Start Simplex\n");
 	if (intermediate_tables)
 		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
 
 	is_degenerate = 0;
 	int safe = 0;
 	int pivoting = 0;
+
+	// Artificial variables canonization
+	int j = variable_amount + slackv_amount + excessv_amount + 1;
+	for (int i = 0; i < artificialv_amount; i++)
+	{
+		mpfr_t a_val;
+		mpfr_init2(a_val, 256);
+		mpfr_set(a_val, table[0][j], MPFR_RNDN);
+
+		int one_row = -1;
+
+		for (int r = 1; r < table_rows; r++)
+		{
+			if (mpfr_cmp_si(table[r][j], 1) == 0)
+			{
+				one_row = r;
+				break;
+			}
+		}
+
+		if (one_row == -1)
+		{
+			fprintf(stderr, "Error: could not find row with artificial var = 1\n");
+			exit(1);
+		}
+
+		for (int c = 1; c < table_cols; c++)
+		{
+			mpfr_t neg_a, to_add;
+			mpfr_inits2(256, neg_a, to_add, (mpfr_ptr)0);
+
+			mpfr_neg(neg_a, a_val, MPFR_RNDN);
+			mpfr_mul(to_add, neg_a, table[one_row][c], MPFR_RNDN);
+
+			mpfr_add(table[0][c], table[0][c], to_add, MPFR_RNDN);
+
+			mpfr_clear(neg_a);
+			mpfr_clear(to_add);
+		}
+
+		mpfr_clear(a_val);
+
+		j++;
+	}
+	print_simplex_table(table, -1, -1, 0);
+	g_print("Finish Simplex\n");
+	return;
 	while (1)
 	{
 		pivoting++;
@@ -818,7 +873,7 @@ mpfr_t **fill_simplex_table_mpfr(mpfr_prec_t prec)
 					 j <= variable_amount + slackv_amount + excessv_amount + artificialv_amount &&
 					 j > variable_amount + slackv_amount + excessv_amount) // artificial columns in first row
 			{
-				if (mode == 0)
+				if (mode == 1)
 					mpfr_neg(mtable[i][j], M, MPFR_RNDN);
 				else
 					mpfr_set(mtable[i][j], M, MPFR_RNDN);
@@ -868,6 +923,9 @@ void setup_simplex()
 	table_cols = 2 + variable_amount + slackv_amount + excessv_amount + artificialv_amount;
 	g_print("%d, %d, %d\n", slackv_amount, excessv_amount, artificialv_amount);
 
+	GtkComboBox *combo = GTK_COMBO_BOX(max_min_combo);
+	mode = gtk_combo_box_get_active(combo);
+
 	// Get variable names
 	for (int i = 0; i < variable_amount; i++)
 	{
@@ -892,7 +950,7 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 	setup_latex();
 	print_simplex_table(table, -1, -1, 0);
 	// print_problem_model(table);
-	// simplex(table);
+	simplex(table);
 	fprintf(output_file, "\\end{document}\n");
 	fclose(output_file);
 
@@ -936,6 +994,7 @@ int main(int argc, char *argv[])
 	constraints_spin = GTK_WIDGET(gtk_builder_get_object(builder, "constraints_spin"));
 	objective_container = GTK_WIDGET(gtk_builder_get_object(builder, "objective_container"));
 	constraints_container = GTK_WIDGET(gtk_builder_get_object(builder, "constraints_container"));
+	max_min_combo = GTK_WIDGET(gtk_builder_get_object(builder, "max_min_combo"));
 
 	setup_input_page();
 	gtk_widget_show_all(main_window);
