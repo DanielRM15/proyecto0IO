@@ -6,6 +6,7 @@
 #include <mpfr.h>
 
 FILE *output_file;
+GtkBuilder *builder;
 GtkWidget *main_window;
 GtkWidget *objective_container;
 GtkWidget *constraints_container;
@@ -73,18 +74,27 @@ void print_with_M(FILE *f, mpfr_t x)
 
 	mpfr_abs(abs_x, x, MPFR_RNDN);
 
+	// Threshold
 	mpfr_t threshold;
 	mpfr_init_set_ui(threshold, 9999, MPFR_RNDN);
 
 	if (mpfr_cmp(abs_x, threshold) <= 0)
 	{
+		// Small number: print normally
 		mpfr_fprintf(f, "%.3Rg", x);
 	}
 	else
 	{
+		// Large number: print as multiple of M
 		mpfr_div(k, x, M, MPFR_RNDN);
 		double k_d = mpfr_get_d(k, MPFR_RNDN);
-		fprintf(f, "%.3gM", k_d);
+
+		if (k_d == 1.0)
+			fprintf(f, "M");
+		else if (k_d == -1.0)
+			fprintf(f, "-M");
+		else
+			fprintf(f, "%.3gM", k_d); // 3 significant digits
 	}
 
 	mpfr_clears(abs_x, k, threshold, NULL);
@@ -202,7 +212,15 @@ void print_problem_model(mpfr_t **table)
 		}
 		mpfr_t val;
 		mpfr_init_set(val, table[i][table_cols - 1], MPFR_RNDN);
-		mpfr_fprintf(output_file, "$\\leq$ %.2Rf \\\\\n", val);
+
+		int option = gtk_combo_box_get_active(GTK_COMBO_BOX(constraint_combos[i - 1]));
+		if (option == 0)
+			mpfr_fprintf(output_file, "$\\leq$ ", val);
+		if (option == 1)
+			mpfr_fprintf(output_file, "$\\geq$ ", val);
+		if (option == 2)
+			mpfr_fprintf(output_file, "$=$ ", val);
+		mpfr_fprintf(output_file, "%.2Rf \\\\\n", val);
 		mpfr_clear(val);
 	}
 	fprintf(output_file, "\\end{center}\n");
@@ -914,6 +932,20 @@ void setup_simplex()
 
 void on_solveBtn(GtkButton *button, gpointer user_data)
 {
+	GtkWidget *popover = GTK_WIDGET(button);
+	while (popover && !GTK_IS_POPOVER(popover))
+		popover = gtk_widget_get_parent(popover);
+	if (popover)
+		gtk_popover_popdown(GTK_POPOVER(popover)); // Hide popover menu
+
+	GtkWidget *steps_btn = GTK_WIDGET(gtk_builder_get_object(builder, "btn_steps"));
+	GtkWidget *solution_btn = GTK_WIDGET(gtk_builder_get_object(builder, "btn_solution"));
+
+	if (GTK_WIDGET(button) == steps_btn)
+		intermediate_tables = 1;
+	else if (GTK_WIDGET(button) == solution_btn)
+		intermediate_tables = 0;
+
 	output_file = fopen("output.tex", "w");
 	if (output_file == NULL)
 	{
@@ -924,8 +956,7 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 	setup_simplex();
 	mpfr_t **table = fill_simplex_table_mpfr(256);
 	setup_latex();
-	print_simplex_table(table, -1, -1, 0);
-	// print_problem_model(table);
+	print_problem_model(table);
 	simplex(table);
 	fprintf(output_file, "\\end{document}\n");
 	fclose(output_file);
@@ -956,7 +987,7 @@ int main(int argc, char *argv[])
 	gtk_init(&argc, &argv);
 
 	// GtkBuilder *builder = gtk_builder_new_from_file("Simplex/simplex.glade"); // Si se abre desde el menu
-	GtkBuilder *builder = gtk_builder_new_from_file("simplex.glade"); // Si se abre SIN en menu
+	builder = gtk_builder_new_from_file("simplex.glade"); // Si se abre SIN en menu
 
 	main_window = GTK_WIDGET(gtk_builder_get_object(builder, "hWindow"));
 
