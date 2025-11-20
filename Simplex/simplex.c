@@ -74,11 +74,11 @@ void print_with_M(FILE *f, mpfr_t x)
 
 	mpfr_abs(abs_x, x, MPFR_RNDN);
 	mpfr_t threshold;
-	mpfr_init_set_ui(threshold, 9999, MPFR_RNDN);
+	mpfr_init_set_ui(threshold, 99999, MPFR_RNDN);
 
 	if (mpfr_cmp(abs_x, threshold) <= 0)
 	{
-		mpfr_fprintf(f, "%.3Rg", x);
+		mpfr_fprintf(f, "%.6Rg", x);
 	}
 	else
 	{
@@ -749,7 +749,6 @@ void build_constraints()
 
 	current_constraints = constraint_amount;
 	current_variables = variable_amount;
-
 	if (constraint_amount > 0 && variable_amount > 0)
 	{
 		constraint_label_widgets = malloc(sizeof(GtkWidget **) * constraint_amount);
@@ -760,7 +759,6 @@ void build_constraints()
 				constraint_label_widgets[c][v] = NULL;
 		}
 	}
-
 	for (int c = 0; c < constraint_amount; ++c)
 	{
 
@@ -1047,6 +1045,213 @@ void on_solveBtn(GtkButton *button, gpointer user_data)
 
 	system("pdflatex output.tex");
 	system("evince --presentation output.pdf &");
+}
+
+void save_data_to_file(const char *filename)
+{
+	FILE *file = fopen(filename, "w");
+	if (file == NULL)
+	{
+		return;
+	}
+
+	// Save metadata
+	constraint_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(constraints_spin));
+	variable_amount = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(variables_spin));
+	problem_name = gtk_entry_get_text(GTK_ENTRY(problem_input));
+	fprintf(file, "problem=%s\n", problem_name);
+	fprintf(file, "var_amount=%d\n", variable_amount);
+	fprintf(file, "contraint_amount=%d\n", constraint_amount);
+
+	GtkComboBox *combo = GTK_COMBO_BOX(max_min_combo);
+	mode = gtk_combo_box_get_active(combo);
+	fprintf(file, "mode=%d\n", mode);
+
+	fprintf(file, "VARIABLES\n");
+	for (int i = 0; i < variable_amount; i++)
+	{
+		const char *txt = gtk_entry_get_text(GTK_ENTRY(variable_entries[i]));
+		fprintf(file, "%s\n", txt);
+	}
+
+	fprintf(file, "OBJECTIVE\n");
+	for (int i = 0; i < variable_amount; i++)
+	{
+		double val = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin_table[0][i]));
+		fprintf(file, "%.2f\n", val);
+	}
+	fprintf(file, "CONSTRAINTS\n");
+	for (int i = 1; i <= constraint_amount; i++)
+	{
+		for (int j = 0; j <= variable_amount; j++)
+		{
+			double val = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin_table[i][j]));
+			fprintf(file, "%.2f\n", val);
+		}
+		int option = gtk_combo_box_get_active(GTK_COMBO_BOX(constraint_combos[i - 1]));
+		fprintf(file, "%d\n", option);
+	}
+	fclose(file);
+}
+
+void on_saveBtn_clicked(GtkButton *button, gpointer user_data)
+{
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Save Simplex Data",
+													GTK_WINDOW(main_window),
+													GTK_FILE_CHOOSER_ACTION_SAVE,
+													"_Cancel", GTK_RESPONSE_CANCEL,
+													"_Save", GTK_RESPONSE_ACCEPT,
+													NULL);
+
+	// Set default filename
+	gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "LP_problem.smplx");
+
+	// Add file filter
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "Simplex Files (*.smplx)");
+	gtk_file_filter_add_pattern(filter, "*.smplx");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (result == GTK_RESPONSE_ACCEPT)
+	{
+		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+		// Add .ksp extension if not present
+		if (!g_str_has_suffix(filename, ".smplx"))
+		{
+			char *new_filename = g_strdup_printf("%s.smplx", filename);
+			g_free(filename);
+			filename = new_filename;
+		}
+
+		save_data_to_file(filename);
+		g_free(filename);
+	}
+
+	gtk_widget_destroy(dialog);
+}
+
+void load_data_from_file(const char *filename)
+{
+	FILE *file = fopen(filename, "r");
+	if (file == NULL)
+	{
+		return;
+	}
+
+	char line[512];
+	char trimmed[512];
+
+	while (fgets(line, sizeof(line), file) != NULL)
+	{
+		strncpy(trimmed, line, sizeof(trimmed));
+		trimmed[sizeof(trimmed) - 1] = '\0';
+		size_t l = strlen(trimmed);
+		if (l > 0 && trimmed[l - 1] == '\n')
+			trimmed[l - 1] = '\0';
+
+		if (strncmp(trimmed, "problem=", 8) == 0)
+		{
+			char *val = trimmed + 8;
+			gtk_entry_set_text(GTK_ENTRY(problem_input), strdup(val));
+		}
+		else if (strncmp(trimmed, "var_amount=", 11) == 0)
+		{
+			sscanf(trimmed + 11, "%d", &variable_amount);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(variables_spin), variable_amount);
+		}
+		else if (strncmp(trimmed, "contraint_amount=", 17) == 0)
+		{
+			sscanf(trimmed + 17, "%d", &constraint_amount);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(constraints_spin), constraint_amount);
+		}
+		else if (strncmp(trimmed, "mode=", 5) == 0)
+		{
+			sscanf(trimmed + 5, "%d", &mode);
+		}
+		else if (strcmp(trimmed, "VARIABLES") == 0)
+		{
+			for (int i = 0; i < variable_amount; i++)
+			{
+				if (fgets(line, sizeof(line), file) == NULL)
+					break;
+				strncpy(trimmed, line, sizeof(trimmed));
+				trimmed[sizeof(trimmed) - 1] = '\0';
+				size_t ll = strlen(trimmed);
+				if (ll > 0 && trimmed[ll - 1] == '\n')
+					trimmed[ll - 1] = '\0';
+				variable_names[i] = strdup(trimmed);
+			}
+			setup_input_page();
+		}
+		else if (strcmp(trimmed, "OBJECTIVE") == 0)
+		{
+			for (int j = 0; j < variable_amount; j++)
+			{
+				fgets(line, sizeof(line), file);
+				char tmp[128];
+				strncpy(tmp, line, sizeof(tmp));
+				tmp[sizeof(tmp) - 1] = '\0';
+				size_t lt = strlen(tmp);
+				if (lt > 0 && tmp[lt - 1] == '\n')
+					tmp[lt - 1] = '\0';
+				gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_table[0][j]), atof(tmp));
+			}
+		}
+		else if (strcmp(trimmed, "CONSTRAINTS") == 0)
+		{
+			for (int i = 0; i < constraint_amount; i++)
+			{
+				for (int j = 0; j <= variable_amount; j++)
+				{
+					fgets(line, sizeof(line), file);
+					char tmp[128];
+					strncpy(tmp, line, sizeof(tmp));
+					tmp[sizeof(tmp) - 1] = '\0';
+					size_t lt = strlen(tmp);
+					if (lt > 0 && tmp[lt - 1] == '\n')
+						tmp[lt - 1] = '\0';
+					gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_table[i + 1][j]), atof(tmp));
+				}
+				fgets(line, sizeof(line), file);
+				char tmp[128];
+				strncpy(tmp, line, sizeof(tmp));
+				tmp[sizeof(tmp) - 1] = '\0';
+				size_t lt = strlen(tmp);
+				if (lt > 0 && tmp[lt - 1] == '\n')
+					tmp[lt - 1] = '\0';
+				gtk_combo_box_set_active(GTK_COMBO_BOX(constraint_combos[i]), atoi(tmp));
+			}
+		}
+	}
+
+	fclose(file);
+}
+
+void on_loadBtn_clicked(GtkButton *button, gpointer user_data)
+{
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Load Simplex Data",
+													GTK_WINDOW(main_window),
+													GTK_FILE_CHOOSER_ACTION_OPEN,
+													"_Cancel", GTK_RESPONSE_CANCEL,
+													"_Load", GTK_RESPONSE_ACCEPT,
+													NULL);
+
+	// Add file filter
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "Simplex Files (*.smplx)");
+	gtk_file_filter_add_pattern(filter, "*.smplx");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (result == GTK_RESPONSE_ACCEPT)
+	{
+		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		load_data_from_file(filename);
+		g_free(filename);
+	}
+	gtk_widget_destroy(dialog);
 }
 
 int main(int argc, char *argv[])
