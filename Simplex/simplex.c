@@ -224,6 +224,52 @@ void print_problem_model(mpfr_t **table)
 	print_simplex_table(table, -1, -1, 0);
 }
 
+int feasible(mpfr_t **table) // 0 No, 1 Yes
+{
+	// Check for artificial vars in BFS
+	mpfr_t zero, one;
+	mpfr_inits2(256, zero, one, NULL);
+	mpfr_set_ui(zero, 0, MPFR_RNDN);
+	mpfr_set_ui(one, 1, MPFR_RNDN);
+	int is_basic = 1;
+	int c = variable_amount + slackv_amount + excessv_amount + 1;
+	for (; c <= variable_amount + slackv_amount + excessv_amount + artificialv_amount; c++)
+	{
+		for (int r = 0; r < table_rows; r++)
+		{
+			if (mpfr_cmp(table[r][c + 1], zero) != 0)
+			{
+				if (mpfr_cmp(table[r][c + 1], one) != 0)
+				{
+					is_basic = 0;
+				}
+			}
+		}
+		if (!is_basic)
+		{
+			fprintf(output_file, "\\newpage\n\\section*{Non-Feasible}\n");
+			fprintf(output_file, "The artificial variable $a_%d$ is in the base. Therefore, a BFS (basic-feasible-solution) does not exist for this problem.\n", c - variable_amount - slackv_amount - excessv_amount);
+			return 0;
+		}
+	}
+
+	// Check for Ms
+	for (int c = 0; c < table_cols; c++)
+	{
+		mpfr_t val;
+		mpfr_init2(val, mpfr_get_prec(table[0][c]));
+		mpfr_abs(val, table[0][c], MPFR_RNDN);
+		if (mpfr_cmp(val, M) > 0)
+		{
+			fprintf(output_file, "\\newpage\n\\section*{Non-Feasible}\n");
+			fprintf(output_file, "The column $%d$ contains an M.Therefore, a BFS (basic-feasible-solution) does not exist for this problem.\n", c);
+			return 0;
+		}
+	}
+	g_print("FEASIBLE!");
+	return 1;
+}
+
 void print_results(mpfr_t **table)
 {
 	fprintf(output_file, "\\section*{Results}\n");
@@ -352,7 +398,9 @@ int pivot(mpfr_t **table, int pivot_col, int pivoting) // ARGS: simplex table, p
 			fprintf(output_file, "\\subsection*{Most Positive}\n");
 		else
 			fprintf(output_file, "\\subsubsection*{Most Negative}\n");
-		mpfr_fprintf(output_file, "Column %d (%.2Rf)\n", pivot_col + 1, table[0][pivot_col]);
+		fprintf(output_file, "Column %d (", pivot_col + 1, table[0][pivot_col]);
+		print_with_M(output_file, table[0][pivot_col]);
+		fprintf(output_file, ")\n", pivot_col + 1, table[0][pivot_col]);
 		print_simplex_table(table, 0, pivot_col, 0);
 		fprintf(output_file, "\\subsubsection*{Fractions}\n");
 		print_simplex_table(table, -1, -1, pivot_col);
@@ -535,14 +583,13 @@ void multiple_solutions(mpfr_t **table, int pivoting)
 
 void simplex(mpfr_t **table)
 {
-	if (intermediate_tables)
-		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
-
 	is_degenerate = 0;
 	int pivoting = 0;
 
 	// Artificial variables canonization
 	int j = variable_amount + slackv_amount + excessv_amount + 1;
+	if (intermediate_tables && artificialv_amount > 0)
+		fprintf(output_file, "\\newpage\n\\section*{Artificial Variables \"Canonization\"}\n");
 	for (int i = 0; i < artificialv_amount; i++)
 	{
 		mpfr_t a_val;
@@ -566,24 +613,32 @@ void simplex(mpfr_t **table)
 			return;
 		}
 
+		mpfr_t neg_a, to_add;
+		mpfr_inits2(256, neg_a, to_add, (mpfr_ptr)0);
+		mpfr_neg(neg_a, a_val, MPFR_RNDN);
 		for (int c = 1; c < table_cols; c++)
 		{
-			mpfr_t neg_a, to_add;
-			mpfr_inits2(256, neg_a, to_add, (mpfr_ptr)0);
-
-			mpfr_neg(neg_a, a_val, MPFR_RNDN);
 			mpfr_mul(to_add, neg_a, table[one_row][c], MPFR_RNDN);
-
 			mpfr_add(table[0][c], table[0][c], to_add, MPFR_RNDN);
-
-			mpfr_clear(neg_a);
-			mpfr_clear(to_add);
+		}
+		if (intermediate_tables)
+		{
+			fprintf(output_file, "\\subsection*{Variable $a_%d$}\n", i + 1);
+			fprintf(output_file, "$R_1 \\leftarrow R_1+");
+			print_with_M(output_file, to_add);
+			fprintf(output_file, "R_%d$ \\\\\n", one_row + 1);
+			print_simplex_table(table, -1, -1, 0);
 		}
 
+		mpfr_clear(neg_a);
+		mpfr_clear(to_add);
 		mpfr_clear(a_val);
 
 		j++;
 	}
+
+	if (intermediate_tables)
+		fprintf(output_file, "\\newpage\n\\section*{Intermediate Tables}\n");
 
 	int can_pivot = 1;
 	while (can_pivot == 1)
@@ -629,8 +684,11 @@ void simplex(mpfr_t **table)
 	g_print("Can %d\n", can_pivot);
 	if (!can_pivot)
 	{
-		print_results(table);
-		multiple_solutions(table, pivoting);
+		if (feasible(table))
+		{
+			print_results(table);
+			multiple_solutions(table, pivoting);
+		}
 	}
 }
 
@@ -693,8 +751,8 @@ void build_objective(void)
 
 		GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
 		GtkWidget *coef_spin = gtk_spin_button_new_with_range(-99999, 99999, 1);
-		gtk_spin_button_set_digits(GTK_SPIN_BUTTON(coef_spin), 2);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(coef_spin), 1.00);
+		gtk_spin_button_set_digits(GTK_SPIN_BUTTON(coef_spin), 3);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(coef_spin), 1.000);
 		gtk_box_pack_start(GTK_BOX(row), coef_spin, FALSE, FALSE, 0);
 
 		if (spin_table && spin_table[0])
@@ -766,9 +824,9 @@ void build_constraints()
 
 		for (int v = 0; v < variable_amount; ++v)
 		{
-			GtkWidget *coef_spin = gtk_spin_button_new_with_range(-9999, 9999, 1);
-			gtk_spin_button_set_digits(GTK_SPIN_BUTTON(coef_spin), 2);
-			gtk_spin_button_set_value(GTK_SPIN_BUTTON(coef_spin), 1.00);
+			GtkWidget *coef_spin = gtk_spin_button_new_with_range(-99999, 99999, 1);
+			gtk_spin_button_set_digits(GTK_SPIN_BUTTON(coef_spin), 3);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(coef_spin), 1.000);
 			gtk_box_pack_start(GTK_BOX(row), coef_spin, FALSE, FALSE, 0);
 
 			if (spin_table)
@@ -1077,16 +1135,16 @@ void save_data_to_file(const char *filename)
 	fprintf(file, "OBJECTIVE\n");
 	for (int i = 0; i < variable_amount; i++)
 	{
-		double val = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin_table[0][i]));
-		fprintf(file, "%.2f\n", val);
+		double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[0][i]));
+		fprintf(file, "%.3f\n", val);
 	}
 	fprintf(file, "CONSTRAINTS\n");
 	for (int i = 1; i <= constraint_amount; i++)
 	{
 		for (int j = 0; j <= variable_amount; j++)
 		{
-			double val = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin_table[i][j]));
-			fprintf(file, "%.2f\n", val);
+			double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_table[i][j]));
+			fprintf(file, "%.3f\n", val);
 		}
 		int option = gtk_combo_box_get_active(GTK_COMBO_BOX(constraint_combos[i - 1]));
 		fprintf(file, "%d\n", option);

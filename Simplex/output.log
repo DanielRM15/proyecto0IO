@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.15)  19 NOV 2025 18:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.15)  20 NOV 2025 19:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -175,35 +175,91 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 23.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 23.
+ [1]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <14.4> on input line 46.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 46.
 
-Underfull \hbox (badness 10000) in paragraph at lines 58--60
+Underfull \hbox (badness 10000) in paragraph at lines 47--58
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 62--65
+Underfull \hbox (badness 10000) in paragraph at lines 60--71
 
  []
 
-[1] (./output.aux) ) 
+[2]
+Underfull \hbox (badness 10000) in paragraph at lines 116--126
+
+ []
+
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 127--138
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 139--150
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--162
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 163--174
+
+ []
+
+[4] [5]
+Underfull \hbox (badness 10000) in paragraph at lines 231--241
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 242--253
+
+ []
+
+[6]
+Underfull \hbox (badness 10000) in paragraph at lines 254--265
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 266--277
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 278--289
+
+ []
+
+[7] [8] (./output.aux) ) 
 Here is how much of TeX's memory you used:
- 2195 strings out of 478287
- 32744 string characters out of 5849289
- 346311 words of memory out of 5000000
- 20422 multiletter control sequences out of 15000+600000
- 474418 words of font info for 45 fonts, out of 8000000 for 9000
+ 2201 strings out of 478287
+ 32838 string characters out of 5849289
+ 376311 words of memory out of 5000000
+ 20428 multiletter control sequences out of 15000+600000
+ 475340 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,11n,62p,202b,206s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmm
-i12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb
-></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/
-share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/te
-xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on output.pdf (2 pages, 67985 bytes).
+ 55i,11n,62p,296b,217s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10
+.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></
+usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/sha
+re/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texli
+ve/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
+Output written on output.pdf (9 pages, 91819 bytes).
 PDF statistics:
- 41 PDF objects out of 1000 (max. 8388607)
- 24 compressed objects within 1 object stream
+ 69 PDF objects out of 1000 (max. 8388607)
+ 43 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
