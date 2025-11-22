@@ -49,6 +49,7 @@ void setup_latex()
 			"\\usepackage[table]{xcolor}\n"
 			"\\usepackage{float}\n"
 			"\\usepackage{geometry}\n"
+			"\\usepackage{adjustbox}\n"
 			"\\geometry{margin=1in}\n"
 			"\n"
 			"\\begin{document}\n"
@@ -100,6 +101,7 @@ void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, i
 {
 	fprintf(output_file, "\\begin{table}[H]\n");
 	fprintf(output_file, "\\centering\n");
+	fprintf(output_file, "\\begin{adjustbox}{width=\\textwidth}");
 	fprintf(output_file, "\\begin{tabular}{c|");
 	for (int i = 0; i < table_cols; i++)
 		fprintf(output_file, "r");
@@ -150,6 +152,7 @@ void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, i
 		fprintf(output_file, "\\\\\n");
 	}
 	fprintf(output_file, "\\end{tabular}\n");
+	fprintf(output_file, "\\end{adjustbox}\n");
 	fprintf(output_file, "\\end{table}\n");
 }
 
