@@ -329,7 +329,7 @@ int feasible(mpfr_t **table) // 0 No, 1 Yes
 	}
 
 	// Check for Ms
-	for (c = 0; c < table_cols; c++)
+	for (c = 0; c < variable_amount + slackv_amount + excessv_amount + 1; c++)
 	{
 		mpfr_t val;
 		mpfr_init2(val, mpfr_get_prec(table[0][c]));
@@ -400,6 +400,29 @@ void print_results(mpfr_t **table)
 			}
 		}
 		fprintf(output_file, "$s_%d$ = ", i + 1);
+		mpfr_fprintf(output_file, "%.2Rf \\\\\n", var_value);
+	}
+	fprintf(output_file, "\n\\subsection*{Excess}\n");
+	for (int i = 0; i < excessv_amount; i++)
+	{
+		mpfr_set_ui(var_value, 0, MPFR_RNDN); // default = 0
+
+		for (int j = 0; j < constraint_amount + 1; j++)
+		{
+			if (mpfr_cmp(table[j][i + variable_amount + slackv_amount + 1], zero) != 0)
+			{
+				if (mpfr_cmp(table[j][i + variable_amount + slackv_amount + 1], one) != 0)
+				{
+					mpfr_set_ui(var_value, 0, MPFR_RNDN);
+					break;
+				}
+				else
+				{
+					mpfr_set(var_value, table[j][table_cols - 1], MPFR_RNDN);
+				}
+			}
+		}
+		fprintf(output_file, "$e_%d$ = ", i + 1);
 		mpfr_fprintf(output_file, "%.2Rf \\\\\n", var_value);
 	}
 	mpfr_clears(var_value, zero, one, NULL);
