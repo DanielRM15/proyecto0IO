@@ -231,8 +231,7 @@ void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, i
 
 void print_problem_model(mpfr_t **table)
 {
-	g_print("Print!\n");
-	fprintf(output_file, "\\section*{");
+	fprintf(output_file, "\\newpage\n\\section*{");
 	fprintf(output_file, problem_name);
 	fprintf(output_file, "}\n");
 	if (mode)
@@ -313,15 +312,15 @@ int feasible(mpfr_t **table) // 0 No, 1 Yes
 	{
 		for (int r = 0; r < table_rows; r++)
 		{
-			if (mpfr_cmp(table[r][c + 1], zero) != 0)
+			if (mpfr_cmp(table[r][c], zero) != 0)
 			{
-				if (mpfr_cmp(table[r][c + 1], one) != 0)
+				if (mpfr_cmp(table[r][c], one) != 0)
 				{
 					is_basic = 0;
 				}
 			}
 		}
-		if (!is_basic)
+		if (is_basic)
 		{
 			fprintf(output_file, "\\newpage\n\\section*{Non-Feasible}\n");
 			fprintf(output_file, "The artificial variable $a_%d$ is in the base. Therefore, a BFS (basic-feasible-solution) does not exist for this problem.\n", c - variable_amount - slackv_amount - excessv_amount);
@@ -330,7 +329,7 @@ int feasible(mpfr_t **table) // 0 No, 1 Yes
 	}
 
 	// Check for Ms
-	for (int c = 0; c < table_cols; c++)
+	for (c = 0; c < table_cols; c++)
 	{
 		mpfr_t val;
 		mpfr_init2(val, mpfr_get_prec(table[0][c]));
@@ -338,11 +337,10 @@ int feasible(mpfr_t **table) // 0 No, 1 Yes
 		if (mpfr_cmp(val, M) > 0)
 		{
 			fprintf(output_file, "\\newpage\n\\section*{Non-Feasible}\n");
-			fprintf(output_file, "The column $%d$ contains an M.Therefore, a BFS (basic-feasible-solution) does not exist for this problem.\n", c);
+			fprintf(output_file, "The column $%d$ contains an M.Therefore, a BFS (basic-feasible-solution) does not exist for this problem.\n", c + 1);
 			return 0;
 		}
 	}
-	g_print("FEASIBLE!");
 	return 1;
 }
 
@@ -757,7 +755,6 @@ void simplex(mpfr_t **table)
 		if (pivoting > 51)
 			break;
 	}
-	g_print("Can %d\n", can_pivot);
 	if (!can_pivot)
 	{
 		if (feasible(table))
@@ -1114,7 +1111,6 @@ void setup_simplex()
 
 	table_rows = constraint_amount + 1;
 	table_cols = 2 + variable_amount + slackv_amount + excessv_amount + artificialv_amount;
-	g_print("%d, %d, %d\n", slackv_amount, excessv_amount, artificialv_amount);
 
 	GtkComboBox *combo = GTK_COMBO_BOX(max_min_combo);
 	mode = gtk_combo_box_get_active(combo);
