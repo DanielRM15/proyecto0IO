@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.15)  21 NOV 2025 19:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.15)  23 NOV 2025 11:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -248,192 +248,43 @@ e
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+Underfull \hbox (badness 10000) in paragraph at lines 22--23
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 24--25
+
+ []
+
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 24.
+(Font)              <12> on input line 28.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 24.
+(Font)              <8> on input line 28.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 24.
- [1]
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 64.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 64.
-
-Underfull \hbox (badness 10000) in paragraph at lines 65--85
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 87--107
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 109--129
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 131--151
-
- []
-
-[2]
-Underfull \hbox (badness 10000) in paragraph at lines 153--173
-
- []
-
-[3] [4]
-Underfull \hbox (badness 10000) in paragraph at lines 253--272
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 273--293
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 294--314
-
- []
-
-[5]
-Underfull \hbox (badness 10000) in paragraph at lines 315--335
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 336--356
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 357--377
-
- []
-
-[6]
-Underfull \hbox (badness 10000) in paragraph at lines 378--398
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 399--419
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 420--440
-
- []
-
-[7]
-Underfull \hbox (badness 10000) in paragraph at lines 441--461
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 462--482
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 483--503
-
- []
-
-[8]
-Underfull \hbox (badness 10000) in paragraph at lines 504--524
-
- []
-
-[9] [10]
-Underfull \hbox (badness 10000) in paragraph at lines 630--649
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 650--670
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 671--691
-
- []
-
-[11]
-Underfull \hbox (badness 10000) in paragraph at lines 692--712
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 713--733
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 734--754
-
- []
-
-[12]
-Underfull \hbox (badness 10000) in paragraph at lines 755--775
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 776--796
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 797--817
-
- []
-
-[13]
-Underfull \hbox (badness 10000) in paragraph at lines 818--838
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 839--859
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 860--880
-
- []
-
-[14]
-Underfull \hbox (badness 10000) in paragraph at lines 881--901
-
- []
-
-[15] [16] (./output.aux) ) 
+(Font)              <6> on input line 28.
+[1] [2] [3] [4] (./output.aux) ) 
 Here is how much of TeX's memory you used:
- 3672 strings out of 478287
- 59551 string characters out of 5849289
- 509828 words of memory out of 5000000
- 21845 multiletter control sequences out of 15000+600000
- 475340 words of font info for 48 fonts, out of 8000000 for 9000
+ 3670 strings out of 478287
+ 59508 string characters out of 5849289
+ 482612 words of memory out of 5000000
+ 21842 multiletter control sequences out of 15000+600000
+ 475062 words of font info for 47 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,12n,90p,659b,361s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr
-10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb>
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/s
-hare/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/tex
-live/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on output.pdf (17 pages, 115838 bytes).
+ 84i,12n,90p,386b,373s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-s
+uper-ts1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx
+12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb
+></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/
+share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/t
+exlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/publ
+ic/cm-super/sfrm1200.pfb>
+Output written on output.pdf (5 pages, 92887 bytes).
 PDF statistics:
- 94 PDF objects out of 1000 (max. 8388607)
- 60 compressed objects within 1 object stream
+ 61 PDF objects out of 1000 (max. 8388607)
+ 37 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
