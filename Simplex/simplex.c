@@ -745,7 +745,7 @@ void multiple_solutions(mpfr_t **table, int pivoting)
 		pivot(table, pivot_col, pivoting);
 		print_results(table);
 		fprintf(output_file, "\\newpage\n\\section*{More Solutions}\n");
-		fprintf(output_file, "$a \\times s1 + (1 - a) \\times s2$ \\\\\n");
+		fprintf(output_file, "We can find an infinite number of optimal solutions for this problem using the formula $a \\times s1 + (1 - a) \\times s2$ \\\\\n");
 		mpfr_t a;
 		mpfr_init_set_d(a, 0.3, MPFR_RNDN);
 		mpfr_t neg_a;
