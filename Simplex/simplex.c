@@ -673,8 +673,88 @@ void multiple_solutions(mpfr_t **table, int pivoting)
 	{
 		fprintf(output_file, "\\newpage\n\\section*{Multiple Solutions}\n");
 		fprintf(output_file, "A non-basic variable has a 0 on its first row, allowing us to pivot again and find another optimal solution.\n\n");
+		mpfr_t prev_sol[variable_amount];
+		for (int i = 0; i < variable_amount; i++)
+		{
+			mpfr_init(prev_sol[i]);
+			mpfr_t val;
+			mpfr_init2(val, mpfr_get_prec(table[0][0]));
+			for (int j = 1; j <= constraint_amount; j++)
+			{
+				mpfr_set(val, table[j][i + 1], MPFR_RNDN);
+				if (mpfr_cmp_ui(val, 0) != 0)
+				{
+					if (mpfr_cmp_ui(val, 1) == 0)
+					{
+						mpfr_set(prev_sol[i], table[j][table_cols - 1], MPFR_RNDN);
+					}
+					else
+					{
+						mpfr_set_ui(prev_sol[i], 0, MPFR_RNDN);
+						break;
+					}
+				}
+			}
+			mpfr_clear(val);
+		}
 		pivot(table, pivot_col, pivoting);
 		print_results(table);
+		fprintf(output_file, "\\newpage\n\\section*{More Solutions}\n");
+		fprintf(output_file, "$a \\times s1 + (1 - a) \\times s2$ \\\\\n");
+		mpfr_t a;
+		mpfr_init_set_d(a, 0.3, MPFR_RNDN);
+		mpfr_t neg_a;
+		mpfr_init(neg_a);
+		mpfr_neg(neg_a, a, MPFR_RNDN);
+		mpfr_add_si(neg_a, neg_a, 1, MPFR_RNDN);
+		mpfr_t sol_vect[variable_amount];
+		for (int v = 0; v < variable_amount; v++)
+		{
+			mpfr_init(sol_vect[v]);
+		}
+		for (int m = 0; m < 3; m++)
+		{
+			for (int i = 0; i < variable_amount; i++)
+			{
+				mpfr_mul(sol_vect[i], a, prev_sol[i], MPFR_RNDN);
+				mpfr_t val;
+				mpfr_init2(val, mpfr_get_prec(table[0][0]));
+				for (int j = 1; j <= constraint_amount; j++)
+				{
+					mpfr_set(val, table[j][i + 1], MPFR_RNDN);
+					if (mpfr_cmp_ui(val, 0) != 0)
+					{
+						if (mpfr_cmp_ui(val, 1) == 0)
+						{
+							mpfr_t mult;
+							mpfr_init(mult);
+							mpfr_mul(mult, neg_a, table[j][table_cols - 1], MPFR_RNDN);
+							mpfr_add(sol_vect[i], sol_vect[i], mult, MPFR_RNDN);
+							mpfr_clear(mult);
+						}
+						else
+						{
+							break;
+						}
+					}
+				}
+				mpfr_clear(val);
+			}
+			fprintf(output_file, "Multiple solution %d", m + 1);
+			mpfr_fprintf(output_file, "($a = %.2Rf$): \\\\\n", a);
+			for (int v = 0; v < variable_amount; v++)
+			{
+				mpfr_fprintf(output_file, "%s $= %.2Rf$ \\\\\n", variable_names[v], sol_vect[v]);
+			}
+			mpfr_add_d(a, a, 0.2, MPFR_RNDN);
+			mpfr_neg(neg_a, a, MPFR_RNDN);
+			mpfr_add_si(neg_a, neg_a, 1, MPFR_RNDN);
+		}
+		for (int v = 0; v < variable_amount; v++)
+		{
+			mpfr_clear(sol_vect[v]);
+		}
+		mpfr_clears(a, neg_a, NULL);
 	}
 }
 
