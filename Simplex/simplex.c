@@ -179,7 +179,6 @@ int is_basic(mpfr_t **table, int var_col)
 	int is_basic = 1;
 	for (int r = 0; r < table_rows; r++)
 	{
-		g_print("check: %d, %d\n", r, var_col);
 		if (mpfr_cmp(table[r][var_col], zero) != 0)
 		{
 			if (mpfr_cmp(table[r][var_col], one) != 0)
@@ -189,7 +188,6 @@ int is_basic(mpfr_t **table, int var_col)
 		}
 	}
 	mpfr_clears(zero, one, NULL);
-	g_print("Done!\n");
 	return is_basic;
 }
 
@@ -201,10 +199,8 @@ void print_simplex_table(mpfr_t **table, int highlight_row, int highlight_col, i
 	fprintf(output_file, "\\begin{tabular}{c|");
 	for (int i = 0; i < table_cols; i++)
 	{
-		g_print("B!\n");
 		if (i > variable_amount + slackv_amount + excessv_amount && i < table_cols - 1)
 		{
-			g_print("A!\n");
 			if (!is_basic(table, i))
 			{
 				continue;
